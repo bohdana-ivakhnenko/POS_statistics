@@ -1,26 +1,19 @@
 import sqlite3
 
 
-def commit(db_function, self):
-    def db_decorator(function):
-        function()
-        self.conn.commit()
-    return db_decorator(db_function)
-
-
 class Database:
     def __init__(self, name: str):
         self.name = name
         self.conn = sqlite3.connect(self.name)
         self.c = self.conn.cursor()
 
-    def close(self):
-        self.conn.close()
+    def delete_table(self, table_name: str) -> None:
+        drop_query = f"DROP TABLE IF EXISTS {table_name}"
+        self.c.execute(drop_query)
 
-    def create_table(self, table_name: str, columns: dict, autoincrement=True, drop=False) -> str:
+    def create_table(self, table_name: str, columns: tuple, autoincrement=True, drop=False) -> str:
         if drop:
-            drop_query = f"DROP TABLE IF EXISTS {table_name}"
-            self.c.execute(drop_query)
+            self.delete_table(table_name)
 
         auto = {True: " AUTOINCREMENT",
                 False: ""}
@@ -31,9 +24,10 @@ class Database:
         query = query + first_col + cols.strip(' ,') + ")"
 
         self.c.execute(query)
+        self.conn.commit()
         return query
 
-    def read_from_table(self, name: str, columns: tuple, where, num, order_by, desc=True) -> str:
+    def read_from_table(self, name: str, columns: tuple, where: str, num: int, order_by: str, desc=True) -> str:
         if columns:
             columns = f"({' ,'.join(columns).strip(' ,')})"
         else:
@@ -46,7 +40,7 @@ class Database:
 
         if order_by:
             order = {True: " DESC",
-                    False: ""}
+                     False: ""}
             query = query + f" ORDER BY {order_by}{order[desc]}"
 
         if num:
@@ -55,5 +49,16 @@ class Database:
         self.c.execute(query)
         return query
 
-    def insert_into_table(self):
-        pass
+    def insert_into_table(self, name: str, data):
+        query = f"INSERT INTO {name} VALUES "
+        if type(data[0]) in {set, tuple, list}:
+            for row in data:
+                values = "', '".join(row)
+                query = query + f"('{values}')"
+                self.c.execute(query)
+        else:
+            values = "', '".join(data)
+            query = query + f"('{values}')"
+            self.c.execute(query)
+        return query
+
