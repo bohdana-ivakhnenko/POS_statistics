@@ -7,10 +7,6 @@ class Database:
         self.conn = sqlite3.connect(self.name)
         self.c = self.conn.cursor()
 
-    def delete_table(self, table_name: str) -> None:
-        drop_query = f"DROP TABLE IF EXISTS {table_name}"
-        self.c.execute(drop_query)
-
     def create_table(self, table_name: str, columns: tuple, autoincrement=True, drop=False) -> str:
         if drop:
             self.delete_table(table_name)
@@ -27,7 +23,7 @@ class Database:
         self.conn.commit()
         return query
 
-    def read_from_table(self, name: str, columns: tuple, where: str, num: int, order_by: str, desc=True) -> str:
+    def read_from_table(self, name: str, columns=(), where="", num=0, order_by="", desc=True) -> tuple:
         if columns:
             columns = f"({' ,'.join(columns).strip(' ,')})"
         else:
@@ -46,8 +42,8 @@ class Database:
         if num:
             query = query + f" LIMIT {num}"
 
-        self.c.execute(query)
-        return query
+        data = tuple(self.c.execute(query).fetchall())
+        return data
 
     def insert_into_table(self, name: str, data):
         query = f"INSERT INTO {name} VALUES "
@@ -62,3 +58,6 @@ class Database:
             self.c.execute(query)
         return query
 
+    def delete_table(self, table_name: str) -> None:
+        drop_query = f"DROP TABLE IF EXISTS {table_name}"
+        self.c.execute(drop_query)
