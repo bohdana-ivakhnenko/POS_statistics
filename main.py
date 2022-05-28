@@ -44,6 +44,23 @@ def create_tables(data_type: str, db, word_forms=False, lemmas=False, pos=False,
     print("Finished on POS")
 
 
+def do_reading(type_: str, num_of_rows: int, db, word_forms=False, lemmas=False, pos=False) -> None:
+    if word_forms:
+        data = db.read_from_table(f"word_forms_{type_}")
+        print("num of word forms: ", len(data))
+        [print(line) for line in data[:num_of_rows]]
+
+    if lemmas:
+        data = db.read_from_table(f"lemmas_{type_}", order_by="abs_freq")
+        print("num of lemmas: ", len(data))
+        [print(line) for line in data[:num_of_rows]]
+
+    if pos:
+        data = db.read_from_table(f"pos_{type_}", order_by="abs_freq")
+        print("num of pos: ", len(data))
+        [print(line) for line in data[:num_of_rows]]
+
+
 if __name__ == '__main__':
     db = database.Database("tales.db")
 
@@ -53,16 +70,7 @@ if __name__ == '__main__':
     create_tables(authors_tales, db, num_of_sub=35, word_forms=False, lemmas=False, pos=False)
     create_tables(folk_tales, db, num_of_sub=35, word_forms=False, lemmas=False, pos=False)
 
-    data = db.read_from_table("word_forms_folk", where="pos IN ('PUNCT', 'X')")
-    print("num of word forms: ", len(data))
-    [print(line) for line in data[:50]]
-
-    data = db.read_from_table("lemmas_folk", order_by="abs_freq")
-    print("num of lemmas: ", len(data))
-    [print(line) for line in data[:50]]
-
-    data = db.read_from_table("pos_folk", order_by="abs_freq")
-    print("num of pos: ", len(data))
-    [print(line) for line in data[:50]]
+    do_reading(authors_tales)
+    do_reading(folk_tales)
 
     db.conn.close()
