@@ -59,5 +59,5 @@ def test_read_from_table(test_case):
 
 
 if __name__ == '__main__':
-    test_create_table()
+    # test_create_table()
     test_read_from_table()
