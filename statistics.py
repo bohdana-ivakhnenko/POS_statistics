@@ -1,36 +1,53 @@
 from collections import defaultdict
 import matplotlib.pyplot as plt
-from math import log10
+from math import log10, sqrt
+import numpy as np
+
+
+def statistical_round(num: float, rounding: int = 2) -> float:
+    num_str = str(num)
+    index = num_str.index('.')
+
+    zeros = 0
+    if num_str[index+1] == '0':
+        zeros = num_str[index+1:].count('0')
+
+    if num_str[index+rounding+zeros+1:index+rounding+zeros+2] == '5':
+        num_str = num_str[:index+rounding+zeros+1] + '6' + num_str[index+rounding+zeros+2:]
+
+    return round(float(num_str), rounding+zeros)
 
 
 # варіаційний ряд
-def group(frequencies) -> tuple:
+def group(frequencies: tuple) -> dict:
     grouped_freqs = defaultdict(int)
     for freq in frequencies:
         grouped_freqs[freq] += 1
-    return tuple(grouped_freqs.items())
+    return dict(grouped_freqs)
 
 
 # інтервальний ряд
-def grouped_by_intervals(frequencies: list) -> dict:
+def group_by_intervals(frequencies: tuple) -> dict:
     n = len(frequencies)
-    num_of_intervals = 1 + int(log10(n))
+    num_of_intervals = 1 + int(3.322 * log10(n))
     h = (max(frequencies) - min(frequencies)) / (num_of_intervals - 1)
     start = min(frequencies) - (h / 2)
 
     intervals = defaultdict(int)
     for i in range(num_of_intervals):
-        numbers = [freq for freq in frequencies if start < freq < (start + h)]
-        intervals[(start, start + h)] = len(numbers)
+        end = statistical_round(start + h, 2)
+        numbers = [freq for freq in frequencies if start <= freq < end]
+        intervals[(start, end)] = len(numbers)
+        start = end
 
-    return intervals
+    return dict(intervals)
 
 
-# полігон частот
+# todo: полігон частот
 # має бути 2 варіанти: для чисел та інтервалів
 def frequency_polygon(data: tuple, xlabel: str) -> None:
     n = len(data)
-    num_of_intervals = 1 + int(log10(n))
+    num_of_intervals = 1 + int(3.322 * log10(n))
     a, bins, c = plt.hist(data, bins=num_of_intervals, histtype='step')
     l = list(bins)
     l.insert(0, 0)
@@ -50,35 +67,110 @@ def frequency_polygon(data: tuple, xlabel: str) -> None:
     plt.show()
 
 
-# коефіцієнт варіації у відсотках - V
-def coefficient_of_variation():
-    pass
+# середня частота x-
+def arithmetic_mean(grouped_data: dict, intervals=False) -> float:
+    sum_ = 0
+    for key, value in grouped_data.items():
+
+        if intervals:
+            key = (key[0] + key[1]) / 2
+
+        sum_ += key * value
+    return statistical_round(sum_ / sum(grouped_data.values()), 2)
 
 
-# коефіцієнт стабільности  (від 0 до 1) - D
-def relative_coefficient_of_variation():
-    pass
+def standard_deviation(grouped_data, arithmetic_mean_: float, interval=False) -> float:
+    """
+    Cереднє квадратичне відхилення.
+    :param grouped_data: варіаційний ряд частот
+    :param arithmetic_mean_: середнє арифметичне
+    :param interval: чи варіаційний ряд є інтервальним
+    :return: десятковий дріб значення середнього квадратичного відхилення.
+    """
+    numerator = []
+    for x, num in grouped_data.items():
+        if interval:
+            x = statistical_round((x[0] + x[1]) / 2, 2)
+
+        x_x = statistical_round(x - arithmetic_mean_, 2)
+        squared = statistical_round(x_x ** 2, 4)
+        numerator.append(squared * num)
+
+    result = sqrt(sum(numerator) / sum(grouped_data.values()))
+    return statistical_round(result, 2)
 
 
-# середнє квадратичне відхилення
-def standard_deviation():
-    pass
+def standard_error(st_dev: float, num_of_freq: int, s: bool) -> float:
+    """
+    Міра коливання середньої частоти.
+    :param st_dev: standard deviation | середнє квадратичне відхилення
+    :param num_of_freq: number of frequencies | кількість частот
+    :param s: якщо True, то функція поверне *стандартну похибку відхилення середньої частоти*
+    (важливо, коли вибірок менше 50)
+    :return: десятковий дріб *міри коливання середньої частоти* або *стандартну похибку відхилення середньої частоти*
+    (залежить від параметра s)
+    """
+    return statistical_round(st_dev / sqrt(num_of_freq), 2)
 
 
-# міра коливання середньої частоти
-def standard_error():
-    pass
+# todo: смуги коливання частот
+def frequency_fluctuations(arithmetic_mean_: float, st_dev: float, visualise: bool, confidences: tuple = (68.3, 95.5, 99.7)):
+    stripes = {}
+    confidences_full = (68.3, 95.5, 99.7)
+
+    for mltpl, confidence in enumerate(confidences_full, 1):
+        if confidences[mltpl-1] == confidence:
+            start = statistical_round(arithmetic_mean_ - (mltpl * st_dev))
+            end = statistical_round(arithmetic_mean_ + (mltpl * st_dev))
+        else:
+            start = 0
+            end = 0
+        stripes[confidence] = (start, end)
+
+    print(stripes)
+    if visualise:
+        plt.rcdefaults()
+        fig, ax = plt.subplots()
+
+        y_pos = np.arange(len(confidences_full))
+        x_value = np.arange(len(stripes.values()))
+
+        ax.barh(y_pos, x_value, align='center')
+        ax.set_yticks(y_pos, labels=confidences_full)
+        ax.invert_yaxis()  # labels read top-to-bottom
+
+        ax.set_xlabel('Смуги коливання')
+        ax.set_title('Cмуги коливання частот, залежно від довірчих інтервалів')
+        plt.show()
+
+    return stripes
 
 
-# смуги коливання частот
-def visualise_frequency_fluctuations():
-    pass
+# todo: коефіцієнт варіації у відсотках - V
+def coefficient_of_variation(st_dev: float, arithmetic_mean_: float) -> float:
+    return statistical_round(st_dev / arithmetic_mean_)
 
 
-# відносна похибка
+# todo: коефіцієнт стабільности  (від 0 до 1) - D
+def relative_coefficient_of_variation(st_dev: float, arithmetic_mean_: float, number_of_freq, absolute_freq: bool):
+    if absolute_freq:
+        d = 1 - (st_dev / (arithmetic_mean_ * sqrt(number_of_freq - 1)))
+    else:
+        v = st_dev / arithmetic_mean_
+        v_max = sqrt(number_of_freq - 1)
+        d = 1 - (v / v_max)
+    return d
+
+
+# todo: відносна похибка
 def relative_error():
     pass
 
 
+def relative_subtraction(num1, num2) -> float:
+    return statistical_round((num1 - num2) / num1)
+
+
 # x = (78, 72, 69, 81, 63, 67, 65, 75, 9, 74, 1, 83, 71, 79, 80, 69)
 # frequency_polygon(x, 'NOUN frequency')
+frequency_fluctuations(1.89, 1.25, visualise=True)
