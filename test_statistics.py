@@ -12,7 +12,9 @@ _test_cases_round = [
     (1.991, 1.99),
     (1.335, 1.34),
     (0.00335, 0.0034),
-    (1.555, 1.56)
+    (1.555, 1.56),
+    (0.00425, 0.0043),
+    (0.0740714, 0.074)
 ]
 
 
@@ -110,8 +112,8 @@ _test_cases_st_dev_int = [
 
 @pytest.mark.parametrize("test_case", _test_cases_st_dev_int)
 def test_st_dev_int(test_case):
-    stable_mean_ = statistics.arithmetic_mean(test_case[0], intervals=True)
-    result = statistics.standard_deviation(test_case[0], stable_mean_=stable_mean_, interval=True)
+    arithmetic_mean_ = statistics.arithmetic_mean(test_case[0], intervals=True)
+    result = statistics.standard_deviation(test_case[0], arithmetic_mean_=arithmetic_mean_, interval=True)
     assert result == test_case[1]
 
 
@@ -139,6 +141,33 @@ def test_freq_fluct(test_case):
     assert result == test_case[1]
 
 
+_test_cases_relative_err = [
+    (((0.072, 1.89), (1.25, 1.89, 305), (0.66, 305)),
+     0.074)
+]
+
+
+@pytest.mark.parametrize("test_case", _test_cases_relative_err)
+def test_rel_err(test_case):
+    result1 = statistics.relative_error(st_err_mean=test_case[0][0])
+    result2 = statistics.relative_error(st_dev_mean_freq_num=test_case[0][1])
+    result3 = statistics.relative_error(var_coef_freq_num=test_case[0][2])
+
+    assert {result1, result2, result3} == {test_case[1]}
+
+
+_test_cases_coef_var = [
+    ((0.54, 0.1),
+     5.4)
+]
+
+
+@pytest.mark.parametrize("test_case", _test_cases_coef_var)
+def test_coef_var(test_case):
+    result = statistics.coefficient_of_variation(test_case[0][0], test_case[0][1])
+    assert result == test_case[1]
+
+
 if __name__ == '__main__':
     test_round()
     test_group()
@@ -148,3 +177,5 @@ if __name__ == '__main__':
     test_st_dev()
     test_st_dev_int()
     test_st_error()
+    test_rel_err()
+    test_coef_var()

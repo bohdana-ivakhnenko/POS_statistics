@@ -5,6 +5,12 @@ import numpy as np
 
 
 def statistical_round(num: float, rounding: int = 2) -> float:
+    """
+    Функція що дозволяє окруклювати з точністю до необхідних знаків після коми або нулів.
+    :param num: число, яке потрібно округлити
+    :param rounding: скільки знаків потрібно залишити, дефолтне значення - 2
+    :return: округлений дріб
+    """
     num_str = str(num)
     index = num_str.index('.')
 
@@ -81,7 +87,7 @@ def arithmetic_mean(grouped_data: dict, intervals=False) -> float:
 
 def standard_deviation(grouped_data, arithmetic_mean_: float, interval=False) -> float:
     """
-    Cереднє квадратичне відхилення.
+    Cереднє квадратичне відхилення. СИГМА
     :param grouped_data: варіаційний ряд частот
     :param arithmetic_mean_: середнє арифметичне
     :param interval: чи варіаційний ряд є інтервальним
@@ -102,7 +108,7 @@ def standard_deviation(grouped_data, arithmetic_mean_: float, interval=False) ->
 
 def standard_error(st_dev: float, num_of_freq: int, s: bool) -> float:
     """
-    Міра коливання середньої частоти.
+    Міра коливання середньої частоти. СИГМА_Х_середнє
     :param st_dev: standard deviation | середнє квадратичне відхилення
     :param num_of_freq: number of frequencies | кількість частот
     :param s: якщо True, то функція поверне *стандартну похибку відхилення середньої частоти*
@@ -146,12 +152,12 @@ def frequency_fluctuations(arithmetic_mean_: float, st_dev: float, visualise: bo
     return stripes
 
 
-# todo: коефіцієнт варіації у відсотках - V
+# коефіцієнт варіації у відсотках - V
 def coefficient_of_variation(st_dev: float, arithmetic_mean_: float) -> float:
     return statistical_round(st_dev / arithmetic_mean_)
 
 
-# todo: коефіцієнт стабільности  (від 0 до 1) - D
+# коефіцієнт стабільности  (від 0 до 1) - D
 def relative_coefficient_of_variation(st_dev: float, arithmetic_mean_: float, number_of_freq, absolute_freq: bool):
     if absolute_freq:
         d = 1 - (st_dev / (arithmetic_mean_ * sqrt(number_of_freq - 1)))
@@ -159,18 +165,30 @@ def relative_coefficient_of_variation(st_dev: float, arithmetic_mean_: float, nu
         v = st_dev / arithmetic_mean_
         v_max = sqrt(number_of_freq - 1)
         d = 1 - (v / v_max)
-    return d
+    return statistical_round(d)
 
 
-# todo: відносна похибка
-def relative_error():
-    pass
+# відносна похибка
+def relative_error(st_err_mean=(), st_dev_mean_freq_num=(), var_coef_freq_num=()) -> float:
+    k = 1.96
+    e = 0
+
+    if len(st_err_mean) == 2:
+        e = (k * st_err_mean[0]) / st_err_mean[1]
+    elif len(st_dev_mean_freq_num) == 3:
+        e = (k * st_dev_mean_freq_num[0]) / (st_dev_mean_freq_num[1] * sqrt(st_dev_mean_freq_num[2]))
+    elif len(var_coef_freq_num) == 2:
+        e = (k * var_coef_freq_num[0]) / sqrt(var_coef_freq_num[1])
+    else:
+        print("No combination of data fits!")
+
+    return statistical_round(e)
 
 
 def relative_subtraction(num1, num2) -> float:
-    return statistical_round((num1 - num2) / num1)
+    return statistical_round(abs(num1 - num2) / num1)
 
 
 # x = (78, 72, 69, 81, 63, 67, 65, 75, 9, 74, 1, 83, 71, 79, 80, 69)
 # frequency_polygon(x, 'NOUN frequency')
-frequency_fluctuations(1.89, 1.25, visualise=True)
+# frequency_fluctuations(1.89, 1.25, visualise=True)
