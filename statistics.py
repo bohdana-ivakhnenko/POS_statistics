@@ -50,7 +50,7 @@ def group_by_intervals(frequencies: tuple) -> dict:
 
 
 # todo: полігон частот
-# має бути 2 варіанти: для чисел та інтервалів
+# має бути 2 варіанти: для чисел та інтервалів (перше НЕ ПРАЦЮЄ)
 def frequency_polygon(data: tuple, xlabel: str) -> None:
     n = len(data)
     num_of_intervals = 1 + int(3.322 * log10(n))
@@ -109,6 +109,7 @@ def standard_deviation(grouped_data, arithmetic_mean_: float, interval=False) ->
 def standard_error(st_dev: float, num_of_freq: int, s: bool) -> float:
     """
     Міра коливання середньої частоти. СИГМА_Х_середнє
+    Стандартна похибка відхилення середньої
     :param st_dev: standard deviation | середнє квадратичне відхилення
     :param num_of_freq: number of frequencies | кількість частот
     :param s: якщо True, то функція поверне *стандартну похибку відхилення середньої частоти*
@@ -116,16 +117,19 @@ def standard_error(st_dev: float, num_of_freq: int, s: bool) -> float:
     :return: десятковий дріб *міри коливання середньої частоти* або *стандартну похибку відхилення середньої частоти*
     (залежить від параметра s)
     """
+    if s:
+        return st_dev / sqrt(num_of_freq - 1)
     return statistical_round(st_dev / sqrt(num_of_freq), 2)
 
 
+# НЕ ПРАЦЮЄ
 # todo: смуги коливання частот
 def frequency_fluctuations(arithmetic_mean_: float, st_dev: float, visualise: bool, confidences: tuple = (68.3, 95.5, 99.7)):
     stripes = {}
-    confidences_full = (68.3, 95.5, 99.7)
+    confidences_full = ("68.3", "95.5", "99.7")
 
     for mltpl, confidence in enumerate(confidences_full, 1):
-        if confidences[mltpl-1] == confidence:
+        if confidences[mltpl-1] == float(confidence):
             start = statistical_round(arithmetic_mean_ - (mltpl * st_dev))
             end = statistical_round(arithmetic_mean_ + (mltpl * st_dev))
         else:
@@ -136,17 +140,45 @@ def frequency_fluctuations(arithmetic_mean_: float, st_dev: float, visualise: bo
     print(stripes)
     if visualise:
         plt.rcdefaults()
-        fig, ax = plt.subplots()
+        # fig, ax = plt.subplots()
+        #
+        # y_pos = np.arange(len(confidences_full))
+        # x_value = np.arange(len(stripes.values()))
+        #
+        # ax.barh(y_pos, x_value, align='center')
+        # ax.set_yticks(y_pos, labels=confidences_full)
+        # ax.invert_yaxis()  # labels read top-to-bottom
+        #
+        # ax.set_xlabel('Смуги коливання')
+        # ax.set_title('Cмуги коливання частот, залежно від довірчих інтервалів')
+        # ax1 = fig.add_subplot(1, 2, 0)
+        values = list(stripes.values())
+        objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
+        y_pos = np.arange(len(objects))
+        performance = [10, 8, 6, -4, 2, 1]
 
-        y_pos = np.arange(len(confidences_full))
-        x_value = np.arange(len(stripes.values()))
+        plt.bar(y_pos, performance, align='center', alpha=0.5)
+        # Get the axes object
+        ax = plt.gca()
+        # remove the existing ticklabels
+        ax.set_xticklabels([])
+        # remove the extra tick on the negative bar
+        ax.set_xticks([idx for (idx, x) in enumerate(performance) if x > 0])
+        ax.spines["bottom"].set_position(("data", 0))
+        # ax.spines["top"].set_visible(False)
+        # ax.spines["right"].set_visible(False)
+        # placing each of the x-axis labels individually
+        label_offset = 0.5
+        for language, (x_position, y_position) in zip(objects, enumerate(performance)):
+            if y_position > 0:
+                label_y = -label_offset
+            else:
+                label_y = y_position - label_offset
+            ax.text(x_position, label_y, language, ha="center", va="top")
+        # Placing the x-axis label, note the transformation into `Axes` co-ordinates
+        # previously data co-ordinates for the x ticklabels
+        ax.text(0.5, -0.05, "Usage", ha="center", va="top", transform=ax.transAxes)
 
-        ax.barh(y_pos, x_value, align='center')
-        ax.set_yticks(y_pos, labels=confidences_full)
-        ax.invert_yaxis()  # labels read top-to-bottom
-
-        ax.set_xlabel('Смуги коливання')
-        ax.set_title('Cмуги коливання частот, залежно від довірчих інтервалів')
         plt.show()
 
     return stripes
@@ -187,6 +219,41 @@ def relative_error(st_err_mean=(), st_dev_mean_freq_num=(), var_coef_freq_num=()
 
 def relative_subtraction(num1, num2) -> float:
     return statistical_round(abs(num1 - num2) / num1)
+
+
+# перевірка на статистичну однорідність, хі-2
+def check_uniformity(samples_subs_freqs: tuple):
+    abs_sample_freqs = [sum(sample) for sample in samples_subs_freqs]
+    total_sum = sum(abs_sample_freqs)
+    abs_subsample_freqs = [0] * len(samples_subs_freqs[0])
+
+    for index_sample, sample in enumerate(samples_subs_freqs):
+        for index_sub, abs_freq in enumerate(sample[index_sample]):
+            abs_subsample_freqs[index_sub] += abs_freq
+
+    fractions = []
+    for index_sample, sample in enumerate(samples_subs_freqs):
+        for index_sub, abs_freq in enumerate(sample[index_sample]):
+            number_squared = abs_freq ** 2
+            fraction = number_squared / ((sum(sample)) * abs_subsample_freqs[index_sub])
+            fractions.append(fraction)
+
+    x_2 = total_sum * (sum(fractions) - 1)
+    return x_2
+
+
+# кількість ступенів свободи
+def freedom_greade(num_of_subsamples: tuple, num_of_samples: int, students_criterion_=False):
+    if students_criterion_:
+        return sum(num_of_subsamples) - len(num_of_subsamples)
+    return (num_of_subsamples[0] - 1) * (num_of_samples - 1)
+
+
+# критерій Стьюдента
+def students_criterion(samples_mean_freq: tuple, s_: tuple):
+    numerator = abs(samples_mean_freq[0] - samples_mean_freq[1])
+    denominator = sqrt(s_[0] ** 2 + s_[1] ** 2)
+    return numerator / denominator
 
 
 # x = (78, 72, 69, 81, 63, 67, 65, 75, 9, 74, 1, 83, 71, 79, 80, 69)
