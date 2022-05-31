@@ -29,7 +29,7 @@ def group(frequencies: tuple) -> dict:
     grouped_freqs = defaultdict(int)
     for freq in frequencies:
         grouped_freqs[freq] += 1
-    return dict(grouped_freqs)
+    return dict(sorted(grouped_freqs.items()))
 
 
 # інтервальний ряд
@@ -51,7 +51,7 @@ def group_by_intervals(frequencies: tuple) -> dict:
 
 # todo: полігон частот
 # має бути 2 варіанти: для чисел та інтервалів (перше НЕ ПРАЦЮЄ)
-def frequency_polygon(data: tuple, xlabel: str) -> None:
+def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=100) -> None:
     n = len(data)
     num_of_intervals = 1 + int(3.322 * log10(n))
     a, bins, c = plt.hist(data, bins=num_of_intervals, histtype='step')
@@ -67,11 +67,39 @@ def frequency_polygon(data: tuple, xlabel: str) -> None:
     x = list(a)
     x.insert(0, 0)
     x.insert(len(a) + 1, 0)
-    plt.xlim([0, 450])
-    plt.ylim([0, 25])
+    plt.margins(0.2)
+    plt.xlim([0-15, x_max+20])
+    plt.ylim([0, y_max+5])
     plt.plot(mid, x, 'yellow')
-    plt.title(f"Полігон частот для {xlabel}")
+
+    y_labels = [num for num in range(0, y_max + 1, 10)]
+    plt.yticks(range(0, y_max + 1, 10), y_labels)
+    x_labels = [num for num in range(0, x_max + 1, 20)]
+    plt.xticks(range(0, x_max + 1, 20), x_labels, rotation=45)
+
+    plt.xlabel(f'Інтервали частот {xlabel}')
+    plt.ylabel('Кількість підвибірок')
+    plt.title(f"Інтервальні полігон частот і гістограма для {xlabel}")
     plt.xlabel(xlabel)
+    plt.show()
+
+
+def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=100):
+    grouped_data = group(data)
+    freqs = grouped_data.keys()
+    nums = grouped_data.values()
+    plt.plot(freqs, nums)
+    plt.xlim([0 - 15, x_max + 20])
+    plt.ylim([0, y_max + 5])
+
+    y_labels = [num for num in range(0, y_max + 1, 10)]
+    plt.yticks(range(0, y_max + 1, 10), y_labels)
+    x_labels = [num for num in range(0, x_max + 1, 20)]
+    plt.xticks(range(0, x_max + 1, 20), x_labels, rotation=45)
+
+    plt.xlabel(f'Частоти {xlabel}')
+    plt.ylabel('Кількість підвибірок')
+    plt.title(f"Полігон частот на варіаційному ряді {xlabel}")
     plt.show()
 
 
@@ -258,6 +286,7 @@ def students_criterion(samples_mean_freq: tuple, s_: tuple):
     return numerator / denominator
 
 
-# x = (78, 72, 69, 81, 63, 67, 65, 75, 9, 74, 1, 83, 71, 79, 80, 69)
-# frequency_polygon(x, 'NOUN frequency')
+# x = (78, 72, 69, 81, 63, 67, 65, 75, 9, 100, 100, 400, 400, 350, 350, 400, 74, 1, 83, 71, 79, 80, 69)
+# frequency_polygon_by_intervals(x, 'NOUN frequency')
+# frequency_polygon(x, 'NOUN frequency polygon')
 # frequency_fluctuations(1.89, 1.25, visualise=True)
