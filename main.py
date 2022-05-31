@@ -3,6 +3,7 @@ import database
 from statistics import group, group_by_intervals, frequency_polygon, frequency_polygon_by_intervals, arithmetic_mean, \
     standard_error, frequency_fluctuations, coefficient_of_variation, relative_coefficient_of_variation, \
     relative_error, relative_subtraction, check_uniformity, students_criterion, freedom_greade, standard_deviation
+import matplotlib as mpl
 
 
 def create_a_table(type_text: str, type_table: str, columns, num_of_sub, data, auto_num):
@@ -155,10 +156,11 @@ def do_calculations(db):
                 print(f"Критерій Стьюдента:\t", st_cr, file=file)
                 print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
 
-        frequency_polygon(pos_a[3:], pos_a[1]+" authors")
-        frequency_polygon_by_intervals(pos_a[3:], pos_a[1]+" authors")
-        frequency_polygon(pos_f[3:], pos_f[1]+" folk")
-        frequency_polygon_by_intervals(pos_f[3:], pos_f[1] + " folk")
+        mpl.rcParams['figure.max_open_warning'] = 0
+        frequency_polygon(pos_a[3:], pos_a[1]+" authors", show=False)
+        frequency_polygon_by_intervals(pos_a[3:], pos_a[1]+" authors", show=False)
+        frequency_polygon(pos_f[3:], pos_f[1]+" folk", show=False)
+        frequency_polygon_by_intervals(pos_f[3:], pos_f[1] + " folk", show=False)
 
 
 if __name__ == '__main__':

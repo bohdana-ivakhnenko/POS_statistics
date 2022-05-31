@@ -51,9 +51,12 @@ def group_by_intervals(frequencies: tuple) -> dict:
 
 # todo: полігон частот
 # має бути 2 варіанти: для чисел та інтервалів (перше НЕ ПРАЦЮЄ)
-def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=100) -> None:
+def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70, show=True) -> None:
+    plt.figure(figsize=(12, 7))
+
     n = len(data)
     num_of_intervals = 1 + int(3.322 * log10(n))
+
     a, bins, c = plt.hist(data, bins=num_of_intervals, histtype='step')
     l = list(bins)
     l.insert(0, 0)
@@ -72,8 +75,8 @@ def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=10
     plt.ylim([0, y_max+5])
     plt.plot(mid, x, 'yellow')
 
-    y_labels = [num for num in range(0, y_max + 1, 10)]
-    plt.yticks(range(0, y_max + 1, 10), y_labels)
+    y_labels = [num for num in range(0, y_max + 1, 5)]
+    plt.yticks(range(0, y_max + 1, 5), y_labels)
     x_labels = [num for num in range(0, x_max + 1, 20)]
     plt.xticks(range(0, x_max + 1, 20), x_labels, rotation=45)
 
@@ -81,10 +84,16 @@ def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=10
     plt.ylabel('Кількість підвибірок')
     plt.title(f"Інтервальні полігон частот і гістограма для {xlabel}")
     plt.xlabel(xlabel)
-    plt.show()
+
+    plt.savefig(f'results\\auto_freq_hys\\{xlabel}.png', dpi=100)
+
+    if show:
+        plt.show()
 
 
-def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=100):
+def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=70, show=True):
+    plt.figure(figsize=(12, 7))
+
     grouped_data = group(data)
     freqs = grouped_data.keys()
     nums = grouped_data.values()
@@ -92,15 +101,19 @@ def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=100):
     plt.xlim([0 - 15, x_max + 20])
     plt.ylim([0, y_max + 5])
 
-    y_labels = [num for num in range(0, y_max + 1, 10)]
-    plt.yticks(range(0, y_max + 1, 10), y_labels)
+    y_labels = [num for num in range(0, y_max + 1, 5)]
+    plt.yticks(range(0, y_max + 1, 5), y_labels)
     x_labels = [num for num in range(0, x_max + 1, 20)]
     plt.xticks(range(0, x_max + 1, 20), x_labels, rotation=45)
 
     plt.xlabel(f'Частоти {xlabel}')
     plt.ylabel('Кількість підвибірок')
     plt.title(f"Полігон частот на варіаційному ряді {xlabel}")
-    plt.show()
+
+    plt.savefig(f'results\\auto_freq_pol\\{xlabel}.png', dpi=100)
+
+    if show:
+        plt.show()
 
 
 # середня частота x-

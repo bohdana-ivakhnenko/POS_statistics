@@ -130,11 +130,7 @@ def into_pos_table(lemmas: tuple, auto_num=True, filter_=False) -> set:
         else:
             index = unique_pos.index(word_info)
             pos_lines[index][1] += lemma_[add + 1]
-            # print("add", add)
-            # print("lemma_", lemma_)
-            # print("lemma_[add + 1]", lemma_[add + 1])
-            # print("lemma_[add + 2:]", len(lemma_[add + 2:]))
-            # print("lemma_[add + 2:]", lemma_[add + 2:])
+
             for num, el in enumerate(lemma_[add + 2:]):
                 pos_lines[index][2 + num] += el
 
