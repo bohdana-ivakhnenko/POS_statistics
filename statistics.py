@@ -67,6 +67,8 @@ def frequency_polygon(data: tuple, xlabel: str) -> None:
     x = list(a)
     x.insert(0, 0)
     x.insert(len(a) + 1, 0)
+    plt.xlim([0, 450])
+    plt.ylim([0, 25])
     plt.plot(mid, x, 'yellow')
     plt.title(f"Полігон частот для {xlabel}")
     plt.xlabel(xlabel)
