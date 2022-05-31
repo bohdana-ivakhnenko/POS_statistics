@@ -81,82 +81,82 @@ def do_calculations(db):
     pos_folk = db.read_from_table(f"pos_filtered_folk", order_by="pos")
 
     for pos_a, pos_f in zip(pos_authors, pos_folk):
-        grouped_a = group(pos_a[3:])
-        grouped_f = group(pos_f[3:])
-
-        grouped_intervals_a = group_by_intervals(pos_a[3:])
-        grouped_intervals_f = group_by_intervals(pos_f[3:])
-
-        mean_a = arithmetic_mean(grouped_a)
-        mean_f = arithmetic_mean(grouped_f)
-
-        st_dev_a = standard_deviation(grouped_a, mean_a)
-        st_dev_f = standard_deviation(grouped_f, mean_f)
-
-        st_err_a = standard_error(st_dev_a, len(pos_a[3:]), s=False)
-        st_err_f = standard_error(st_dev_f, len(pos_f[3:]), s=False)
-
-        stripes_a = frequency_fluctuations(mean_a, st_dev_a, visualise=False)
-        stripes_f = frequency_fluctuations(mean_f, st_dev_f, visualise=False)
-
-        coef_var_a = coefficient_of_variation(st_dev_a, mean_a)
-        coef_var_f = coefficient_of_variation(st_dev_f, mean_f)
-
-        rel_coef_var_a = relative_coefficient_of_variation(st_dev_a, mean_a, len(pos_a[3:]), pos_a[2])
-        rel_coef_var_f = relative_coefficient_of_variation(st_dev_f, mean_f, len(pos_f[3:]), pos_f[2])
-
-        rel_err_a = relative_error((st_err_a, mean_a))
-        rel_err_f = relative_error((st_err_f, mean_f))
-
-        with open(f"results\\{pos_a[1]}.txt", "w", encoding="utf-8") as file:
-            print(f"Варіаційний ряд автори:", file=file)
-            print(grouped_a, file=file, end='\n\n')
-            print(f"Варіаційний ряд фольк:", file=file)
-            print(grouped_f, file=file, end='\n\n')
-
-            print(f"Інтервальний ряд автори:", file=file)
-            print(grouped_intervals_a, file=file, end='\n\n')
-            print(f"Інтервальний ряд фольк:", file=file)
-            print(grouped_intervals_f, file=file, end='\n\n')
-
-            print(f"Середнє арифметичне:\nавтори\tфольк", file=file)
-            print(mean_a, mean_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Середнє квадратичне відхилення:\nавтори\tфольк", file=file)
-            print(st_dev_a, st_dev_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Міра коливання середньої частоти:\nавтори\tфольк", file=file)
-            print(st_err_a, st_err_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Смуги коливання:\nавтори\tфольк", file=file)
-            print(stripes_a, stripes_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Коефіцієнт варіації - V (у відсотках):\nавтори\tфольк", file=file)
-            print(coef_var_a, coef_var_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Коефіцієнт стабільности - D (у відсотках):\nавтори\tфольк", file=file)
-            print(rel_coef_var_a, rel_coef_var_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Відносна похибка:\nавтори\tфольк", file=file)
-            print(rel_err_a, rel_err_f, file=file, end='\n\n', sep='\t')
-
-            if pos_a in ["NOUN", "VERB", "CONJ"]:
-                samples = (pos_a, pos_f)
-                unif = check_uniformity(samples)
-                fr_gr = freedom_greade((len(pos_f[3:])), len(samples))
-                print(f"Перевірка на статистичну однорідність - х^2:\t", unif, file=file)
-                print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='\n\n')
-
-            if pos_a in ["ADJ", "ADV", "PREP"]:
-                st_a = standard_error(st_dev_a, len(pos_a[3:]), s=True)
-                st_f = standard_error(st_dev_f, len(pos_f[3:]), s=True)
-                st_cr = students_criterion((mean_a, mean_f), (st_a, st_f))
-                fr_gr_stud = freedom_greade((sum(pos_a[3:]), sum(pos_f[3:])), len(samples), students_criterion_=True)
-                print(f"Критерій Стьюдента:\t", st_cr, file=file)
-                print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
+        # grouped_a = group(pos_a[3:])
+        # grouped_f = group(pos_f[3:])
+        #
+        # grouped_intervals_a = group_by_intervals(pos_a[3:])
+        # grouped_intervals_f = group_by_intervals(pos_f[3:])
+        #
+        # mean_a = arithmetic_mean(grouped_a)
+        # mean_f = arithmetic_mean(grouped_f)
+        #
+        # st_dev_a = standard_deviation(grouped_a, mean_a)
+        # st_dev_f = standard_deviation(grouped_f, mean_f)
+        #
+        # st_err_a = standard_error(st_dev_a, len(pos_a[3:]), s=False)
+        # st_err_f = standard_error(st_dev_f, len(pos_f[3:]), s=False)
+        #
+        # stripes_a = frequency_fluctuations(mean_a, st_dev_a, visualise=False)
+        # stripes_f = frequency_fluctuations(mean_f, st_dev_f, visualise=False)
+        #
+        # coef_var_a = coefficient_of_variation(st_dev_a, mean_a)
+        # coef_var_f = coefficient_of_variation(st_dev_f, mean_f)
+        #
+        # rel_coef_var_a = relative_coefficient_of_variation(st_dev_a, mean_a, len(pos_a[3:]), pos_a[2])
+        # rel_coef_var_f = relative_coefficient_of_variation(st_dev_f, mean_f, len(pos_f[3:]), pos_f[2])
+        #
+        # rel_err_a = relative_error((st_err_a, mean_a))
+        # rel_err_f = relative_error((st_err_f, mean_f))
+        #
+        # with open(f"results\\{pos_a[1]}.txt", "w", encoding="utf-8") as file:
+        #     print(f"Варіаційний ряд автори:", file=file)
+        #     print(grouped_a, file=file, end='\n\n')
+        #     print(f"Варіаційний ряд фольк:", file=file)
+        #     print(grouped_f, file=file, end='\n\n')
+        #
+        #     print(f"Інтервальний ряд автори:", file=file)
+        #     print(grouped_intervals_a, file=file, end='\n\n')
+        #     print(f"Інтервальний ряд фольк:", file=file)
+        #     print(grouped_intervals_f, file=file, end='\n\n')
+        #
+        #     print(f"Середнє арифметичне:\nавтори\tфольк", file=file)
+        #     print(mean_a, mean_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Середнє квадратичне відхилення:\nавтори\tфольк", file=file)
+        #     print(st_dev_a, st_dev_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Міра коливання середньої частоти:\nавтори\tфольк", file=file)
+        #     print(st_err_a, st_err_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Смуги коливання:\nавтори\tфольк", file=file)
+        #     print(stripes_a, stripes_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Коефіцієнт варіації - V (у відсотках):\nавтори\tфольк", file=file)
+        #     print(coef_var_a, coef_var_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Коефіцієнт стабільности - D (у відсотках):\nавтори\tфольк", file=file)
+        #     print(rel_coef_var_a, rel_coef_var_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Відносна похибка:\nавтори\tфольк", file=file)
+        #     print(rel_err_a, rel_err_f, file=file, end='\n\n', sep='\t')
+        #
+        #     if pos_a in ["NOUN", "VERB", "CONJ"]:
+        #         samples = (pos_a, pos_f)
+        #         unif = check_uniformity(samples)
+        #         fr_gr = freedom_greade((len(pos_f[3:])), len(samples))
+        #         print(f"Перевірка на статистичну однорідність - х^2:\t", unif, file=file)
+        #         print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='\n\n')
+        #
+        #     if pos_a in ["ADJ", "ADV", "PREP"]:
+        #         st_a = standard_error(st_dev_a, len(pos_a[3:]), s=True)
+        #         st_f = standard_error(st_dev_f, len(pos_f[3:]), s=True)
+        #         st_cr = students_criterion((mean_a, mean_f), (st_a, st_f))
+        #         fr_gr_stud = freedom_greade((sum(pos_a[3:]), sum(pos_f[3:])), len(samples), students_criterion_=True)
+        #         print(f"Критерій Стьюдента:\t", st_cr, file=file)
+        #         print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
 
         frequency_polygon(pos_a[3:], pos_a[1]+" authors")
-        frequency_polygon(pos_f[3:], pos_f[1] + " folk")
+        frequency_polygon(pos_f[3:], pos_f[1]+" folk")
 
 
 if __name__ == '__main__':
