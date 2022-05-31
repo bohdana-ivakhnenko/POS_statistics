@@ -25,7 +25,8 @@ def get_tales(link: str, type: str):
         all_titles.extend(tales_titles_)
         all_links.extend(tree.xpath('/html/body/div[2]/section[2]/div[3]/div/section/div[1]/ul/li/a/@href'))
         num += 1
-        tree = get_a_tree(link + f"/next/{num}")
+        print(num)
+        tree = get_a_tree(link + f"next/{num}")
         tales_titles_ = tree.xpath('/html/body/div[2]/section[2]/div[3]/div/section/div[1]/ul/li/a/text()')
 
     print("Collected tales and links!")
@@ -39,12 +40,12 @@ def get_tales(link: str, type: str):
         all_texts += " " + tale
 
         title_ = re.sub(r"[\[\]\\/|:*?\"<>]", "", title).replace(" ", "_")+".txt"
-        with open(f"tales_{type}\\{title_}", "w", encoding="utf-8") as file1, \
-                open(f"tales_{type}.txt", "a", encoding="utf-8") as file2:
+        with open(f"sources\\tales_{type}\\{title_}", "w", encoding="utf-8") as file1, \
+                open(f"sources\\tales_{type}.txt", "a", encoding="utf-8") as file2:
             print(tale, end="", file=file1)
             print(tale, end="\n\n", file=file2)
 
-    print("Finished!", end="\n\n")
+    print(f"Finished on {type} tales!", end="\n\n")
     return True
 
 
