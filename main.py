@@ -1,8 +1,8 @@
 import processing
 import database
-from statistics import group, group_by_intervals, frequency_polygon, arithmetic_mean, standard_deviation, \
+from statistics import group, group_by_intervals, frequency_polygon, frequency_polygon_by_intervals, arithmetic_mean, \
     standard_error, frequency_fluctuations, coefficient_of_variation, relative_coefficient_of_variation, \
-    relative_error, relative_subtraction, check_uniformity, students_criterion, freedom_greade
+    relative_error, relative_subtraction, check_uniformity, students_criterion, freedom_greade, standard_deviation
 
 
 def create_a_table(type_text: str, type_table: str, columns, num_of_sub, data, auto_num):
@@ -156,7 +156,9 @@ def do_calculations(db):
                 print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
 
         frequency_polygon(pos_a[3:], pos_a[1]+" authors")
+        frequency_polygon_by_intervals(pos_a[3:], pos_a[1]+" authors")
         frequency_polygon(pos_f[3:], pos_f[1]+" folk")
+        frequency_polygon_by_intervals(pos_f[3:], pos_f[1] + " folk")
 
 
 if __name__ == '__main__':
@@ -164,19 +166,22 @@ if __name__ == '__main__':
 
     authors_tales = "authors"
     folk_tales = "folk"
+    num_of_sub = 200
 
-    create_tables(authors_tales, db, num_of_sub=35, word_forms=False, lemmas=False, pos=False, pos_filter=False)
-    create_tables(folk_tales, db, num_of_sub=35, word_forms=False, lemmas=False, pos=False, pos_filter=False)
+    create_tables(authors_tales, db, num_of_sub=num_of_sub, word_forms=True, lemmas=True, pos=True, pos_filter=True)
+    create_tables(folk_tales, db, num_of_sub=num_of_sub, word_forms=True, lemmas=True, pos=True, pos_filter=True)
 
-    print(authors_tales)
-    authors = db.read_from_table(f"lemmas_authors", where="pos = 'PUNCT'", order_by="abs_freq")
-    print(authors)
-    print(sum([word[3] for word in authors]))
-    print()
-    print(folk_tales)
-    folk = db.read_from_table(f"lemmas_folk", where="pos = 'PUNCT'", order_by="abs_freq")
-    print(folk)
-    print(sum([word[3] for word in folk]))
+    # print(authors_tales)
+    # authors = db.read_from_table(f"pos_filtered_authors", order_by="abs_freq")
+    # print(authors[1])
+    # print("len(authors)", len(authors))
+    # print(sum([word[2] for word in authors]))
+    # print()
+    # print(folk_tales)
+    # folk = db.read_from_table(f"pos_filtered_folk", order_by="abs_freq")
+    # print(folk[1])
+    # print("len(folk)", len(folk))
+    # print(sum([word[2] for word in folk]))
 
     do_reading(authors_tales, db, pos_filter=True)
     print()

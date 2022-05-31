@@ -64,7 +64,7 @@ class Database:
             for row in data:
                 query = f"INSERT INTO {name} VALUES "
                 query += organize_values(row)
-                print("insert", query)
+                # print("insert", query)
                 self.c.execute(query)
                 self.conn.commit()
         else:

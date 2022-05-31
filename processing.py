@@ -72,8 +72,10 @@ def into_lemmas_table(word_forms: tuple, auto_num=True) -> set:
 
         else:
             index = unique_lemmas.index(word_info)
+            lemmas_lines[index][2] += form[add + 2]
+
             for num, el in enumerate(form[add + 3:]):
-                lemmas_lines[index][2 + num] += el
+                lemmas_lines[index][3 + num] += el
 
     if auto_num:
         return set([tuple(line) for line in lemmas_lines])
@@ -114,7 +116,7 @@ def into_pos_table(lemmas: tuple, auto_num=True, filter_=False) -> set:
         if filter_:
             if lemma_[2] == "AUX" and lemma_[1] in ['б', 'би']:
                 lemma_[2] = "PART_INTJ"
-            elif lemma_[2] == "AUX" and lemma_[1] == 'бути':
+            elif lemma_[2] == "AUX":
                 lemma_[2] = "VERB"
             else:
                 lemma_[2] = filter_dict[lemma_[2]]
@@ -127,8 +129,14 @@ def into_pos_table(lemmas: tuple, auto_num=True, filter_=False) -> set:
 
         else:
             index = unique_pos.index(word_info)
-            for num, el in enumerate(lemma_[add + 1:]):
-                pos_lines[index][1 + num] += el
+            pos_lines[index][1] += lemma_[add + 1]
+            # print("add", add)
+            # print("lemma_", lemma_)
+            # print("lemma_[add + 1]", lemma_[add + 1])
+            # print("lemma_[add + 2:]", len(lemma_[add + 2:]))
+            # print("lemma_[add + 2:]", lemma_[add + 2:])
+            for num, el in enumerate(lemma_[add + 2:]):
+                pos_lines[index][2 + num] += el
 
     if auto_num:
         return set([tuple(line) for line in pos_lines])
