@@ -50,7 +50,8 @@ def group_by_intervals(frequencies: tuple) -> dict:
 
 
 # полігон частот
-def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20) -> None:
+def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20,
+                                   path="results\\freq_his\\") -> None:
     plt.figure(figsize=(12, 7))
 
     n = len(data)
@@ -89,13 +90,14 @@ def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70
     plt.title(f"Інтервальні полігон частот і гістограма для {xlabel}")
     plt.xlabel(xlabel)
 
-    plt.savefig(f'results\\auto_freq_hys\\{xlabel}.png', dpi=100)
+    plt.savefig(f'{path}{xlabel}.png', dpi=100)
 
     if show:
         plt.show()
 
 
-def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20):
+def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20,
+                      path="results\\freq_pol\\"):
     plt.figure(figsize=(12, 7))
 
     grouped_data = group(data)
@@ -119,7 +121,7 @@ def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, 
     plt.ylabel('Кількість підвибірок')
     plt.title(f"Полігон частот на варіаційному ряді {xlabel}")
 
-    plt.savefig(f'results\\auto_freq_pol\\{xlabel}.png', dpi=100)
+    plt.savefig(f'{path}{xlabel}.png', dpi=100)
 
     if show:
         plt.show()

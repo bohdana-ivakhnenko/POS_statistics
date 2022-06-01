@@ -77,7 +77,9 @@ def do_reading(type_: str, db, num_of_rows: int = -1, word_forms=False, lemmas=F
         [print(line) for line in data[:num_of_rows]]
 
 
-def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", where=""):
+def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", where="",
+                    results_path="results\\", freq_hist_path="freq_hist\\", freq_pol_path="freq_pol\\",
+                    show=False, x_max=400, x_ticks_freq=20):
     index = 3
     if table.startswith("word_form"):
         index = 5
@@ -120,59 +122,75 @@ def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", whe
         rel_err_a = relative_error((st_err_a, mean_a))
         rel_err_f = relative_error((st_err_f, mean_f))
 
-        # with open(f"results\\{data_a[1]}.txt", "w", encoding="utf-8") as file:
-        #     print(f"Варіаційний ряд автори:", file=file)
-        #     print(grouped_a, file=file, end='\n\n')
-        #     print(f"Варіаційний ряд фольк:", file=file)
-        #     print(grouped_f, file=file, end='\n\n')
-        #
-        #     print(f"Інтервальний ряд автори:", file=file)
-        #     print(grouped_intervals_a, file=file, end='\n\n')
-        #     print(f"Інтервальний ряд фольк:", file=file)
-        #     print(grouped_intervals_f, file=file, end='\n\n')
-        #
-        #     print(f"Середнє арифметичне:\nавтори\tфольк", file=file)
-        #     print(mean_a, mean_f, file=file, end='\n\n', sep='\t')
-        #
-        #     print(f"Середнє квадратичне відхилення:\nавтори\tфольк", file=file)
-        #     print(st_dev_a, st_dev_f, file=file, end='\n\n', sep='\t')
-        #
-        #     print(f"Міра коливання середньої частоти:\nавтори\tфольк", file=file)
-        #     print(st_err_a, st_err_f, file=file, end='\n\n', sep='\t')
-        #
-        #     print(f"Смуги коливання:\nавтори\tфольк", file=file)
-        #     print(stripes_a, stripes_f, file=file, end='\n\n', sep='\t')
-        #
-        #     print(f"Коефіцієнт варіації - V (у відсотках):\nавтори\tфольк", file=file)
-        #     print(coef_var_a, coef_var_f, file=file, end='\n\n', sep='\t')
-        #
-        #     print(f"Коефіцієнт стабільности - D (у відсотках):\nавтори\tфольк", file=file)
-        #     print(rel_coef_var_a, rel_coef_var_f, file=file, end='\n\n', sep='\t')
-        #
-        #     print(f"Відносна похибка:\nавтори\tфольк", file=file)
-        #     print(rel_err_a, rel_err_f, file=file, end='\n\n', sep='\t')
-        #
-        #     if data_a in ["NOUN", "VERB", "CONJ"]:
-        #         samples = (data_a, data_f)
-        #         unif = check_uniformity(samples)
-        #         fr_gr = freedom_greade((len(subs_a)), len(samples))
-        #         print(f"Перевірка на статистичну однорідність - х^2:\t", unif, file=file)
-        #         print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='\n\n')
-        #
-        #     if data_a in ["ADJ", "ADV", "PREP"]:
-        #         st_a = standard_error(st_dev_a, len(subs_a), s=True)
-        #         st_f = standard_error(st_dev_f, len(subs_f), s=True)
-        #         st_cr = students_criterion((mean_a, mean_f), (st_a, st_f))
-        #         fr_gr_stud = freedom_greade((sum(subs_a), sum(subs_f)), len(samples), students_criterion_=True)
-        #         print(f"Критерій Стьюдента:\t", st_cr, file=file)
-        #         print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
+        with open(f"{results_path}{data_a[1]}.txt", "w", encoding="utf-8") as file:
+            print(f"Абсолютна частота автори:\t", data_a[index-1], file=file, end='\n\n')
+            print(f"Абсолютна частота фольк:\t", data_f[index-1], file=file, end='\n\n')
+
+            # це і сума по абсолютних частотах - для опису таблиць, а не одиниць в них
+            # print(f"Унікальних одиниць автори:\t", len(data_a), file=file, end='\n\n')
+            # print(f"Унікальних одиниць фольк:\t", len(data_f), file=file, end='\n\n')
+
+            print(f"Варіаційний ряд автори:", file=file)
+            print(grouped_a, file=file, end='\n\n')
+            print(f"Варіаційний ряд фольк:", file=file)
+            print(grouped_f, file=file, end='\n\n')
+
+            print(f"Інтервальний ряд автори:", file=file)
+            print(grouped_intervals_a, file=file, end='\n\n')
+            print(f"Інтервальний ряд фольк:", file=file)
+            print(grouped_intervals_f, file=file, end='\n\n')
+
+            print(f"Середнє арифметичне:\nавтори\tфольк", file=file)
+            print(mean_a, mean_f, file=file, end='\n\n', sep='\t')
+
+            print(f"Середнє квадратичне відхилення:\nавтори\tфольк", file=file)
+            print(st_dev_a, st_dev_f, file=file, end='\n\n', sep='\t')
+
+            print(f"Міра коливання середньої частоти:\nавтори\tфольк", file=file)
+            print(st_err_a, st_err_f, file=file, end='\n\n', sep='\t')
+
+            print(f"Смуги коливання:\nавтори\tфольк", file=file)
+            print(stripes_a, stripes_f, file=file, end='\n\n', sep='\t')
+
+            print(f"Коефіцієнт варіації - V (у відсотках):\nавтори\tфольк", file=file)
+            print(coef_var_a, coef_var_f, file=file, end='\n\n', sep='\t')
+
+            print(f"Коефіцієнт стабільности - D (у відсотках):\nавтори\tфольк", file=file)
+            print(rel_coef_var_a, rel_coef_var_f, file=file, end='\n\n', sep='\t')
+
+            print(f"Відносна похибка:\nавтори\tфольк", file=file)
+            print(rel_err_a, rel_err_f, file=file, end='\n\n', sep='\t')
+
+            print(f"Приклад рядка автори:", file=file)
+            print(data_a[0], file=file)
+            print(f"Приклад рядка фольк:", file=file)
+            print(data_f[0], file=file)
+
+            if data_a in ["NOUN", "VERB", "CONJ"]:
+                samples = (data_a, data_f)
+                unif = check_uniformity(samples)
+                fr_gr = freedom_greade((len(subs_a)), len(samples))
+                print(f"Перевірка на статистичну однорідність - х^2:\t", unif, file=file)
+                print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='\n\n')
+
+            if data_a in ["ADJ", "ADV", "PREP"]:
+                st_a = standard_error(st_dev_a, len(subs_a), s=True)
+                st_f = standard_error(st_dev_f, len(subs_f), s=True)
+                st_cr = students_criterion((mean_a, mean_f), (st_a, st_f))
+                fr_gr_stud = freedom_greade((sum(subs_a), sum(subs_f)), len(samples), students_criterion_=True)
+                print(f"Критерій Стьюдента:\t", st_cr, file=file)
+                print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
 
         if polygons:
             mpl.rcParams['figure.max_open_warning'] = 0
-            frequency_polygon(subs_a, data_a[1]+" authors", show=False, x_max=50, x_ticks_freq=5)
-            frequency_polygon_by_intervals(subs_a, data_a[1]+" authors", show=False, x_max=50, x_ticks_freq=5)
-            frequency_polygon(subs_f, data_f[1]+" folk", show=False, x_max=50, x_ticks_freq=5)
-            frequency_polygon_by_intervals(subs_f, data_f[1] + " folk", show=False, x_max=50, x_ticks_freq=5)
+            frequency_polygon(subs_a, data_a[1]+" authors", show=False, x_max=x_max, x_ticks_freq=x_ticks_freq,
+                              path=results_path+freq_pol_path)
+            frequency_polygon(subs_f, data_f[1] + " folk", show=False, x_max=x_max, x_ticks_freq=x_ticks_freq,
+                              path=results_path + freq_pol_path)
+            frequency_polygon_by_intervals(subs_a, data_a[1]+" authors", show=False, x_max=x_max,
+                                           x_ticks_freq=x_ticks_freq, path=results_path+freq_hist_path)
+            frequency_polygon_by_intervals(subs_f, data_f[1] + " folk", show=False, x_max=x_max,
+                                           x_ticks_freq=x_ticks_freq, path=results_path+freq_hist_path)
 
 
 if __name__ == '__main__':
@@ -202,9 +220,21 @@ if __name__ == '__main__':
     # print()
     # do_reading(folk_tales, db, pos_filter=True)
 
-    do_calculations(db, table="lemmas", where="lemma = 'бути' AND pos in ('VERB', 'AUX')", order_by="", polygons=True)
-    do_calculations(db, table="lemmas", where="lemma = 'ти' AND pos = 'PRON'", order_by="", polygons=True)
-    do_calculations(db, table="lemmas", where="lemma = 'дрібний' AND pos in ('DET', 'ADJ')", order_by="", polygons=True)
-    do_calculations(db, table="lemmas", where="lemma = 'великий' AND pos in ('DET', 'ADJ')", order_by="", polygons=True)
+    do_calculations(db, polygons=True)
+    do_calculations(db, table="lemmas", where="lemma = 'бути' AND pos in ('VERB', 'AUX')", order_by="",
+                    polygons=True, results_path="results\\high_freq\\",
+                    freq_pol_path="freq_pol\\", freq_hist_path="freq_hist\\", x_max=50, x_ticks_freq=5)
+
+    do_calculations(db, table="lemmas", where="lemma = 'ти' AND pos = 'PRON'", order_by="",
+                    polygons=True, results_path="results\\high_freq\\",
+                    freq_pol_path="freq_pol\\", freq_hist_path="freq_hist\\", x_max=50, x_ticks_freq=5)
+
+    do_calculations(db, table="lemmas", where="lemma = 'дрібний' AND pos in ('DET', 'ADJ')", order_by="",
+                    polygons=True, results_path="results\\low_freq\\",
+                    freq_pol_path="freq_pol\\", freq_hist_path="freq_hist\\", x_max=50, x_ticks_freq=5)
+
+    do_calculations(db, table="lemmas", where="lemma = 'великий' AND pos in ('DET', 'ADJ')", order_by="",
+                    polygons=True, results_path="results\\low_freq\\",
+                    freq_pol_path="freq_pol\\", freq_hist_path="freq_hist\\", x_max=50, x_ticks_freq=5)
 
     db.conn.close()
