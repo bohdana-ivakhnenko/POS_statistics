@@ -49,9 +49,8 @@ def group_by_intervals(frequencies: tuple) -> dict:
     return dict(intervals)
 
 
-# todo: полігон частот
-# має бути 2 варіанти: для чисел та інтервалів (перше НЕ ПРАЦЮЄ)
-def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70, show=True) -> None:
+# полігон частот
+def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20) -> None:
     plt.figure(figsize=(12, 7))
 
     n = len(data)
@@ -71,14 +70,19 @@ def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70
     x.insert(0, 0)
     x.insert(len(a) + 1, 0)
     plt.margins(0.2)
-    plt.xlim([0-15, x_max+20])
-    plt.ylim([0, y_max+5])
+
+    indent_left = x_max / 25
+    indent_right = x_max / 20
+    indent_upper = y_max / 15
+
+    plt.xlim([0 - indent_left, x_max + indent_right])
+    plt.ylim([0, y_max + indent_upper])
     plt.plot(mid, x, 'yellow')
 
     y_labels = [num for num in range(0, y_max + 1, 5)]
     plt.yticks(range(0, y_max + 1, 5), y_labels)
-    x_labels = [num for num in range(0, x_max + 1, 20)]
-    plt.xticks(range(0, x_max + 1, 20), x_labels, rotation=45)
+    x_labels = [num for num in range(0, x_max + 1, x_ticks_freq)]
+    plt.xticks(range(0, x_max + 1, x_ticks_freq), x_labels, rotation=45)
 
     plt.xlabel(f'Інтервали частот {xlabel}')
     plt.ylabel('Кількість підвибірок')
@@ -91,20 +95,25 @@ def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70
         plt.show()
 
 
-def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=70, show=True):
+def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20):
     plt.figure(figsize=(12, 7))
 
     grouped_data = group(data)
     freqs = grouped_data.keys()
     nums = grouped_data.values()
     plt.plot(freqs, nums)
-    plt.xlim([0 - 15, x_max + 20])
-    plt.ylim([0, y_max + 5])
+
+    indent_left = x_max / 25
+    indent_right = x_max / 20
+    indent_upper = y_max / 15
+
+    plt.xlim([0 - indent_left, x_max + indent_right])
+    plt.ylim([0, y_max + indent_upper])
 
     y_labels = [num for num in range(0, y_max + 1, 5)]
     plt.yticks(range(0, y_max + 1, 5), y_labels)
-    x_labels = [num for num in range(0, x_max + 1, 20)]
-    plt.xticks(range(0, x_max + 1, 20), x_labels, rotation=45)
+    x_labels = [num for num in range(0, x_max + 1, x_ticks_freq)]
+    plt.xticks(range(0, x_max + 1, x_ticks_freq), x_labels, rotation=45)
 
     plt.xlabel(f'Частоти {xlabel}')
     plt.ylabel('Кількість підвибірок')

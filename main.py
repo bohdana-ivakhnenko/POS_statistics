@@ -77,16 +77,27 @@ def do_reading(type_: str, db, num_of_rows: int = -1, word_forms=False, lemmas=F
         [print(line) for line in data[:num_of_rows]]
 
 
-def do_calculations(db):
-    pos_authors = db.read_from_table(f"pos_filtered_authors", order_by="pos")
-    pos_folk = db.read_from_table(f"pos_filtered_folk", order_by="pos")
+def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", where=""):
+    index = 3
+    if table.startswith("word_form"):
+        index = 5
+    elif table.startswith("lemma"):
+        index = 4
+    elif table.startswith("pos"):
+        index = 3
 
-    for pos_a, pos_f in zip(pos_authors, pos_folk):
-        grouped_a = group(pos_a[3:])
-        grouped_f = group(pos_f[3:])
+    authors_ = db.read_from_table(f"{table}_authors", order_by=order_by, where=where)
+    folk_ = db.read_from_table(f"{table}_folk", order_by=order_by, where=where)
 
-        grouped_intervals_a = group_by_intervals(pos_a[3:])
-        grouped_intervals_f = group_by_intervals(pos_f[3:])
+    for data_a, data_f in zip(authors_, folk_):
+        subs_a = data_a[index:]
+        subs_f = data_f[index:]
+
+        grouped_a = group(subs_a)
+        grouped_f = group(subs_f)
+
+        grouped_intervals_a = group_by_intervals(subs_a)
+        grouped_intervals_f = group_by_intervals(subs_f)
 
         mean_a = arithmetic_mean(grouped_a)
         mean_f = arithmetic_mean(grouped_f)
@@ -94,8 +105,8 @@ def do_calculations(db):
         st_dev_a = standard_deviation(grouped_a, mean_a)
         st_dev_f = standard_deviation(grouped_f, mean_f)
 
-        st_err_a = standard_error(st_dev_a, len(pos_a[3:]), s=False)
-        st_err_f = standard_error(st_dev_f, len(pos_f[3:]), s=False)
+        st_err_a = standard_error(st_dev_a, len(subs_a), s=False)
+        st_err_f = standard_error(st_dev_f, len(subs_f), s=False)
 
         stripes_a = frequency_fluctuations(mean_a, st_dev_a, visualise=False)
         stripes_f = frequency_fluctuations(mean_f, st_dev_f, visualise=False)
@@ -103,64 +114,65 @@ def do_calculations(db):
         coef_var_a = coefficient_of_variation(st_dev_a, mean_a)
         coef_var_f = coefficient_of_variation(st_dev_f, mean_f)
 
-        rel_coef_var_a = relative_coefficient_of_variation(st_dev_a, mean_a, len(pos_a[3:]), pos_a[2])
-        rel_coef_var_f = relative_coefficient_of_variation(st_dev_f, mean_f, len(pos_f[3:]), pos_f[2])
+        rel_coef_var_a = relative_coefficient_of_variation(st_dev_a, mean_a, len(subs_a), data_a[2])
+        rel_coef_var_f = relative_coefficient_of_variation(st_dev_f, mean_f, len(subs_f), data_f[2])
 
         rel_err_a = relative_error((st_err_a, mean_a))
         rel_err_f = relative_error((st_err_f, mean_f))
 
-        with open(f"results\\{pos_a[1]}.txt", "w", encoding="utf-8") as file:
-            print(f"Варіаційний ряд автори:", file=file)
-            print(grouped_a, file=file, end='\n\n')
-            print(f"Варіаційний ряд фольк:", file=file)
-            print(grouped_f, file=file, end='\n\n')
+        # with open(f"results\\{data_a[1]}.txt", "w", encoding="utf-8") as file:
+        #     print(f"Варіаційний ряд автори:", file=file)
+        #     print(grouped_a, file=file, end='\n\n')
+        #     print(f"Варіаційний ряд фольк:", file=file)
+        #     print(grouped_f, file=file, end='\n\n')
+        #
+        #     print(f"Інтервальний ряд автори:", file=file)
+        #     print(grouped_intervals_a, file=file, end='\n\n')
+        #     print(f"Інтервальний ряд фольк:", file=file)
+        #     print(grouped_intervals_f, file=file, end='\n\n')
+        #
+        #     print(f"Середнє арифметичне:\nавтори\tфольк", file=file)
+        #     print(mean_a, mean_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Середнє квадратичне відхилення:\nавтори\tфольк", file=file)
+        #     print(st_dev_a, st_dev_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Міра коливання середньої частоти:\nавтори\tфольк", file=file)
+        #     print(st_err_a, st_err_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Смуги коливання:\nавтори\tфольк", file=file)
+        #     print(stripes_a, stripes_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Коефіцієнт варіації - V (у відсотках):\nавтори\tфольк", file=file)
+        #     print(coef_var_a, coef_var_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Коефіцієнт стабільности - D (у відсотках):\nавтори\tфольк", file=file)
+        #     print(rel_coef_var_a, rel_coef_var_f, file=file, end='\n\n', sep='\t')
+        #
+        #     print(f"Відносна похибка:\nавтори\tфольк", file=file)
+        #     print(rel_err_a, rel_err_f, file=file, end='\n\n', sep='\t')
+        #
+        #     if data_a in ["NOUN", "VERB", "CONJ"]:
+        #         samples = (data_a, data_f)
+        #         unif = check_uniformity(samples)
+        #         fr_gr = freedom_greade((len(subs_a)), len(samples))
+        #         print(f"Перевірка на статистичну однорідність - х^2:\t", unif, file=file)
+        #         print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='\n\n')
+        #
+        #     if data_a in ["ADJ", "ADV", "PREP"]:
+        #         st_a = standard_error(st_dev_a, len(subs_a), s=True)
+        #         st_f = standard_error(st_dev_f, len(subs_f), s=True)
+        #         st_cr = students_criterion((mean_a, mean_f), (st_a, st_f))
+        #         fr_gr_stud = freedom_greade((sum(subs_a), sum(subs_f)), len(samples), students_criterion_=True)
+        #         print(f"Критерій Стьюдента:\t", st_cr, file=file)
+        #         print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
 
-            print(f"Інтервальний ряд автори:", file=file)
-            print(grouped_intervals_a, file=file, end='\n\n')
-            print(f"Інтервальний ряд фольк:", file=file)
-            print(grouped_intervals_f, file=file, end='\n\n')
-
-            print(f"Середнє арифметичне:\nавтори\tфольк", file=file)
-            print(mean_a, mean_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Середнє квадратичне відхилення:\nавтори\tфольк", file=file)
-            print(st_dev_a, st_dev_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Міра коливання середньої частоти:\nавтори\tфольк", file=file)
-            print(st_err_a, st_err_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Смуги коливання:\nавтори\tфольк", file=file)
-            print(stripes_a, stripes_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Коефіцієнт варіації - V (у відсотках):\nавтори\tфольк", file=file)
-            print(coef_var_a, coef_var_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Коефіцієнт стабільности - D (у відсотках):\nавтори\tфольк", file=file)
-            print(rel_coef_var_a, rel_coef_var_f, file=file, end='\n\n', sep='\t')
-
-            print(f"Відносна похибка:\nавтори\tфольк", file=file)
-            print(rel_err_a, rel_err_f, file=file, end='\n\n', sep='\t')
-
-            if pos_a in ["NOUN", "VERB", "CONJ"]:
-                samples = (pos_a, pos_f)
-                unif = check_uniformity(samples)
-                fr_gr = freedom_greade((len(pos_f[3:])), len(samples))
-                print(f"Перевірка на статистичну однорідність - х^2:\t", unif, file=file)
-                print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='\n\n')
-
-            if pos_a in ["ADJ", "ADV", "PREP"]:
-                st_a = standard_error(st_dev_a, len(pos_a[3:]), s=True)
-                st_f = standard_error(st_dev_f, len(pos_f[3:]), s=True)
-                st_cr = students_criterion((mean_a, mean_f), (st_a, st_f))
-                fr_gr_stud = freedom_greade((sum(pos_a[3:]), sum(pos_f[3:])), len(samples), students_criterion_=True)
-                print(f"Критерій Стьюдента:\t", st_cr, file=file)
-                print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
-
-        mpl.rcParams['figure.max_open_warning'] = 0
-        frequency_polygon(pos_a[3:], pos_a[1]+" authors", show=False)
-        frequency_polygon_by_intervals(pos_a[3:], pos_a[1]+" authors", show=False)
-        frequency_polygon(pos_f[3:], pos_f[1]+" folk", show=False)
-        frequency_polygon_by_intervals(pos_f[3:], pos_f[1] + " folk", show=False)
+        if polygons:
+            mpl.rcParams['figure.max_open_warning'] = 0
+            frequency_polygon(subs_a, data_a[1]+" authors", show=False, x_max=50, x_ticks_freq=5)
+            frequency_polygon_by_intervals(subs_a, data_a[1]+" authors", show=False, x_max=50, x_ticks_freq=5)
+            frequency_polygon(subs_f, data_f[1]+" folk", show=False, x_max=50, x_ticks_freq=5)
+            frequency_polygon_by_intervals(subs_f, data_f[1] + " folk", show=False, x_max=50, x_ticks_freq=5)
 
 
 if __name__ == '__main__':
@@ -170,25 +182,29 @@ if __name__ == '__main__':
     folk_tales = "folk"
     num_of_sub = 200
 
-    create_tables(authors_tales, db, num_of_sub=num_of_sub, word_forms=True, lemmas=True, pos=True, pos_filter=True)
-    create_tables(folk_tales, db, num_of_sub=num_of_sub, word_forms=True, lemmas=True, pos=True, pos_filter=True)
+    # create_tables(authors_tales, db, num_of_sub=num_of_sub, word_forms=True, lemmas=True, pos=True, pos_filter=True)
+    # create_tables(folk_tales, db, num_of_sub=num_of_sub, word_forms=True, lemmas=True, pos=True, pos_filter=True)
 
     # print(authors_tales)
-    # authors = db.read_from_table(f"pos_filtered_authors", order_by="abs_freq")
-    # print(authors[1])
+    # authors = db.read_from_table(f"lemmas_authors", where="lemma in ('бути', 'ти', 'дрібний', 'великий')", order_by="abs_freq", num=30, desc=False)
+    # print(authors)
     # print("len(authors)", len(authors))
-    # print(sum([word[2] for word in authors]))
+    #
+    # print(sum([word[3] for word in authors]))
     # print()
     # print(folk_tales)
-    # folk = db.read_from_table(f"pos_filtered_folk", order_by="abs_freq")
-    # print(folk[1])
+    # folk = db.read_from_table(f"lemmas_folk", where="lemma in ('бути', 'ти', 'дрібний', 'великий')", order_by="abs_freq", num=30, desc=False)
+    # print(folk)
     # print("len(folk)", len(folk))
-    # print(sum([word[2] for word in folk]))
+    # print(sum([word[3] for word in folk]))
 
-    do_reading(authors_tales, db, pos_filter=True)
-    print()
-    do_reading(folk_tales, db, pos_filter=True)
+    # do_reading(authors_tales, db, pos_filter=True)
+    # print()
+    # do_reading(folk_tales, db, pos_filter=True)
 
-    do_calculations(db)
+    do_calculations(db, table="lemmas", where="lemma = 'бути' AND pos in ('VERB', 'AUX')", order_by="", polygons=True)
+    do_calculations(db, table="lemmas", where="lemma = 'ти' AND pos = 'PRON'", order_by="", polygons=True)
+    do_calculations(db, table="lemmas", where="lemma = 'дрібний' AND pos in ('DET', 'ADJ')", order_by="", polygons=True)
+    do_calculations(db, table="lemmas", where="lemma = 'великий' AND pos in ('DET', 'ADJ')", order_by="", polygons=True)
 
     db.conn.close()
