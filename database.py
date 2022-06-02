@@ -35,7 +35,8 @@ class Database:
         self.conn.commit()
         return query
 
-    def read_from_table(self, name: str, columns=(), where="", num=0, order_by="", desc=True) -> tuple:
+    def read_from_table(self, name: str, columns=(), where="", num=0, order_by="", desc=True, return_description=False,
+                        print_query=True) -> tuple:
         if columns:
             columns = f"({' ,'.join(columns).strip(' ,')})"
         else:
@@ -53,9 +54,15 @@ class Database:
 
         if num:
             query = query + f" LIMIT {num}"
+        
+        if print_query:
+            print(query)
+    
+        exe = self.c.execute(query)
+        data = tuple(exe.fetchall())
 
-        print(query)
-        data = tuple(self.c.execute(query).fetchall())
+        if return_description:
+            return data, tuple([column[0] for column in list(exe.description)])
         return data
 
     def insert_into_table(self, name: str, data, multiple_rows: bool):

@@ -2,7 +2,7 @@ import processing
 import database
 from statistics import group, group_by_intervals, frequency_polygon, frequency_polygon_by_intervals, arithmetic_mean, \
     standard_error, frequency_fluctuations, coefficient_of_variation, relative_coefficient_of_variation, \
-    relative_error, relative_subtraction, check_uniformity, students_criterion, freedom_greade, standard_deviation
+    relative_error, get_sample_size, check_uniformity, students_criterion, freedom_greade, standard_deviation
 import matplotlib as mpl
 
 
@@ -78,7 +78,7 @@ def do_reading(type_: str, db, num_of_rows: int = -1, word_forms=False, lemmas=F
 
 
 def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", where="",
-                    results_path="results\\", freq_hist_path="freq_hist\\", freq_pol_path="freq_pol\\",
+                    results_path="results\\pos\\", freq_hist_path="freq_hist\\", freq_pol_path="freq_pol\\",
                     show=False, x_max=400, x_ticks_freq=20):
     index = 3
     if table.startswith("word_form"):
@@ -122,6 +122,9 @@ def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", whe
         rel_err_a = relative_error((st_err_a, mean_a))
         rel_err_f = relative_error((st_err_f, mean_f))
 
+        sample_size_a = get_sample_size(coef_var_a)
+        sample_size_f = get_sample_size(coef_var_f)
+
         with open(f"{results_path}{data_a[1]}.txt", "w", encoding="utf-8") as file:
             print(f"Абсолютна частота автори:\t", data_a[index-1], file=file, end='\n\n')
             print(f"Абсолютна частота фольк:\t", data_f[index-1], file=file, end='\n\n')
@@ -161,10 +164,13 @@ def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", whe
             print(f"Відносна похибка:\nавтори\tфольк", file=file)
             print(rel_err_a, rel_err_f, file=file, end='\n\n', sep='\t')
 
+            print(f"Кількість підвибірок по 1000 слововживань для відносної похибки у 4,5%:\nавтори\tфольк", file=file)
+            print(sample_size_a, sample_size_f, file=file, end='\n\n', sep='\t')
+
             print(f"Приклад рядка автори:", file=file)
-            print(data_a[0], file=file)
+            print(data_a, file=file)
             print(f"Приклад рядка фольк:", file=file)
-            print(data_f[0], file=file)
+            print(data_f, file=file)
 
             if data_a in ["NOUN", "VERB", "CONJ"]:
                 samples = (data_a, data_f)
@@ -220,21 +226,21 @@ if __name__ == '__main__':
     # print()
     # do_reading(folk_tales, db, pos_filter=True)
 
-    do_calculations(db, polygons=True)
+    do_calculations(db, polygons=False)
     do_calculations(db, table="lemmas", where="lemma = 'бути' AND pos in ('VERB', 'AUX')", order_by="",
-                    polygons=True, results_path="results\\high_freq\\",
+                    polygons=False, results_path="results\\high_freq\\",
                     freq_pol_path="freq_pol\\", freq_hist_path="freq_hist\\", x_max=50, x_ticks_freq=5)
 
     do_calculations(db, table="lemmas", where="lemma = 'ти' AND pos = 'PRON'", order_by="",
-                    polygons=True, results_path="results\\high_freq\\",
+                    polygons=False, results_path="results\\high_freq\\",
                     freq_pol_path="freq_pol\\", freq_hist_path="freq_hist\\", x_max=50, x_ticks_freq=5)
 
     do_calculations(db, table="lemmas", where="lemma = 'дрібний' AND pos in ('DET', 'ADJ')", order_by="",
-                    polygons=True, results_path="results\\low_freq\\",
+                    polygons=False, results_path="results\\low_freq\\",
                     freq_pol_path="freq_pol\\", freq_hist_path="freq_hist\\", x_max=50, x_ticks_freq=5)
 
     do_calculations(db, table="lemmas", where="lemma = 'великий' AND pos in ('DET', 'ADJ')", order_by="",
-                    polygons=True, results_path="results\\low_freq\\",
+                    polygons=False, results_path="results\\low_freq\\",
                     freq_pol_path="freq_pol\\", freq_hist_path="freq_hist\\", x_max=50, x_ticks_freq=5)
 
     db.conn.close()

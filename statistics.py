@@ -51,7 +51,7 @@ def group_by_intervals(frequencies: tuple) -> dict:
 
 # полігон частот
 def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20,
-                                   path="results\\freq_his\\") -> None:
+                                   path="results\\pos\\freq_his\\") -> None:
     plt.figure(figsize=(12, 7))
 
     n = len(data)
@@ -97,7 +97,7 @@ def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70
 
 
 def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20,
-                      path="results\\freq_pol\\"):
+                      path="results\\pos\\freq_pol\\"):
     plt.figure(figsize=(12, 7))
 
     grouped_data = group(data)
@@ -276,7 +276,7 @@ def relative_subtraction(num1, num2) -> float:
 
 
 # перевірка на статистичну однорідність, хі-2
-def check_uniformity(samples_subs_freqs: tuple):
+def check_uniformity(samples_subs_freqs: tuple) -> int:
     abs_sample_freqs = [sum(sample) for sample in samples_subs_freqs]
     total_sum = sum(abs_sample_freqs)
     abs_subsample_freqs = [0] * len(samples_subs_freqs[0])
@@ -304,11 +304,18 @@ def freedom_greade(num_of_subsamples: tuple, num_of_samples: int, students_crite
 
 
 # критерій Стьюдента
-def students_criterion(samples_mean_freq: tuple, s_: tuple):
+def students_criterion(samples_mean_freq: tuple, s_: tuple) -> float:
     numerator = abs(samples_mean_freq[0] - samples_mean_freq[1])
     denominator = sqrt(s_[0] ** 2 + s_[1] ** 2)
-    return numerator / denominator
+    return statistical_round(numerator / denominator)
 
+
+# Необхідний обсяг вибірки для досягнення заданої відносної похибки дослідження
+def get_sample_size(coef_of_var: float, rel_err: float = 0.045) -> int:
+    k = 1.96
+    numerator = (k ** 2) * (coef_of_var ** 2)
+    denominator = rel_err ** 2
+    return int(statistical_round(numerator / denominator, 0))
 
 # x = (78, 72, 69, 81, 63, 67, 65, 75, 9, 100, 100, 400, 400, 350, 350, 400, 74, 1, 83, 71, 79, 80, 69)
 # frequency_polygon_by_intervals(x, 'NOUN frequency')
