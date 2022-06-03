@@ -110,8 +110,7 @@ def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", whe
         st_err_a = standard_error(st_dev_a, len(subs_a), s=False)
         st_err_f = standard_error(st_dev_f, len(subs_f), s=False)
 
-        stripes_a = frequency_fluctuations(mean_a, st_dev_a, visualise=False)
-        stripes_f = frequency_fluctuations(mean_f, st_dev_f, visualise=False)
+        stripes = frequency_fluctuations((mean_a, mean_f), (st_dev_a, st_dev_f), visualise=False)
 
         coef_var_a = coefficient_of_variation(st_dev_a, mean_a)
         coef_var_f = coefficient_of_variation(st_dev_f, mean_f)
@@ -153,7 +152,7 @@ def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", whe
             print(st_err_a, st_err_f, file=file, end='\n\n', sep='\t')
 
             print(f"Смуги коливання:\nавтори\tфольк", file=file)
-            print(stripes_a, stripes_f, file=file, end='\n\n', sep='\t')
+            print(stripes[0], stripes[1], file=file, end='\n\n', sep='\t')
 
             print(f"Коефіцієнт варіації - V (у відсотках):\nавтори\tфольк", file=file)
             print(coef_var_a, coef_var_f, file=file, end='\n\n', sep='\t')
@@ -175,7 +174,7 @@ def do_calculations(db, table="pos_filtered", polygons=True, order_by="pos", whe
             if data_a in ["NOUN", "VERB", "CONJ"]:
                 samples = (data_a, data_f)
                 unif = check_uniformity(samples)
-                fr_gr = freedom_greade((len(subs_a)), len(samples))
+                fr_gr = freedom_greade((len(subs_a),), len(samples))
                 print(f"Перевірка на статистичну однорідність - х^2:\t", unif, file=file)
                 print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='\n\n')
 

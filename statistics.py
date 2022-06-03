@@ -1,5 +1,7 @@
+import collections
 from collections import defaultdict
 import matplotlib.pyplot as plt
+from matplotlib import text
 from math import log10, sqrt
 import numpy as np
 
@@ -176,66 +178,67 @@ def standard_error(st_dev: float, num_of_freq: int, s: bool) -> float:
     return statistical_round(st_dev / sqrt(num_of_freq), 2)
 
 
-# НЕ ПРАЦЮЄ
-# todo: смуги коливання частот
-def frequency_fluctuations(arithmetic_mean_: float, st_dev: float, visualise: bool, confidences: tuple = (68.3, 95.5, 99.7)):
-    stripes = {}
-    confidences_full = ("68.3", "95.5", "99.7")
+# смуги коливання частот
+def frequency_fluctuations(arithmetic_means: tuple, st_devs: tuple, visualise: bool, path: str,
+                           order_of_sub: tuple = ("authors", "folklore"), confidences: tuple = (68.3, 95.5, 99.7),
+                           show: bool = False) -> tuple:
+    stripes = collections.defaultdict(dict)
+    confidences_full = (68.3, 95.5, 99.7)
 
     for mltpl, confidence in enumerate(confidences_full, 1):
-        if confidences[mltpl-1] == float(confidence):
-            start = statistical_round(arithmetic_mean_ - (mltpl * st_dev))
-            end = statistical_round(arithmetic_mean_ + (mltpl * st_dev))
-        else:
-            start = 0
-            end = 0
-        stripes[confidence] = (start, end)
-
-    print(stripes)
-    if visualise:
-        plt.rcdefaults()
-        # fig, ax = plt.subplots()
-        #
-        # y_pos = np.arange(len(confidences_full))
-        # x_value = np.arange(len(stripes.values()))
-        #
-        # ax.barh(y_pos, x_value, align='center')
-        # ax.set_yticks(y_pos, labels=confidences_full)
-        # ax.invert_yaxis()  # labels read top-to-bottom
-        #
-        # ax.set_xlabel('Смуги коливання')
-        # ax.set_title('Cмуги коливання частот, залежно від довірчих інтервалів')
-        # ax1 = fig.add_subplot(1, 2, 0)
-        values = list(stripes.values())
-        objects = ('Python', 'C++', 'Java', 'Perl', 'Scala', 'Lisp')
-        y_pos = np.arange(len(objects))
-        performance = [10, 8, 6, -4, 2, 1]
-
-        plt.bar(y_pos, performance, align='center', alpha=0.5)
-        # Get the axes object
-        ax = plt.gca()
-        # remove the existing ticklabels
-        ax.set_xticklabels([])
-        # remove the extra tick on the negative bar
-        ax.set_xticks([idx for (idx, x) in enumerate(performance) if x > 0])
-        ax.spines["bottom"].set_position(("data", 0))
-        # ax.spines["top"].set_visible(False)
-        # ax.spines["right"].set_visible(False)
-        # placing each of the x-axis labels individually
-        label_offset = 0.5
-        for language, (x_position, y_position) in zip(objects, enumerate(performance)):
-            if y_position > 0:
-                label_y = -label_offset
+        for index, mean_ in enumerate(arithmetic_means):
+            if confidences[mltpl-1] == float(confidence):
+                start = statistical_round(mean_ - (mltpl * st_devs[index]))
+                end = statistical_round(mean_ + (mltpl * st_devs[index]))
             else:
-                label_y = y_position - label_offset
-            ax.text(x_position, label_y, language, ha="center", va="top")
-        # Placing the x-axis label, note the transformation into `Axes` co-ordinates
-        # previously data co-ordinates for the x ticklabels
-        ax.text(0.5, -0.05, "Usage", ha="center", va="top", transform=ax.transAxes)
+                start = 0
+                end = 0
+            stripes[order_of_sub[index]][confidence] = (start, end)
 
-        plt.show()
+    if visualise:
+        plt.figure(figsize=(15, 7))
 
-    return stripes
+        data = collections.defaultdict(list)
+        x_ticks = [0]
+
+        # чи можна інтегрувати в попередній цикл?
+        for index, level in enumerate(confidences_full, 1):
+            for key, dict_ in stripes[index].items():
+                data[key].append(dict_)
+                x_ticks.extend(dict_)
+
+        mult = 30
+        levels_y = list(range(70, 105, 15))
+        plt.ylim([60, 110])
+        plt.yticks(levels_y, [f"{conf}%,  {index}σ " for index, conf in enumerate(confidences_full, 1)],
+                   fontdict={"size": 11})
+        plt.xlim([min(x_ticks)*mult-10, max(x_ticks)*mult+10])
+        plt.xticks([x*mult for x in x_ticks], x_ticks, rotation=45, fontdict={"size": 8.3})
+
+        for data_, level in zip(data.values(), levels_y):
+            y_value = level + 3
+            line_a, = plt.plot([d*mult for d in data_[0]], (y_value, y_value), color='green', linewidth=1.7,
+                               label='authors')
+            [plt.vlines(x=d*mult, ymin=0, ymax=y_value, colors='green', linestyles=':', linewidth=1.3, alpha=0.7)
+             for d in data_[0]]
+            print("here")
+            y_value = level - 3
+            line_f, = plt.plot([d*mult for d in data_[1]], (y_value, y_value), color='blue', linewidth=1.7,
+                               label='folklore')
+            [plt.vlines(x=d*mult, ymin=0, ymax=y_value, colors='blue', linestyles=':', linewidth=1.3, alpha=0.7)
+             for d in data_[1]]
+        plt.vlines(x=0, ymin=0, ymax=110, colors="black", linestyles='-', linewidth=1, alpha=0.6)
+        plt.legend(handles=[line_a, line_f])
+
+        plt.xlabel('Смуги коливання', fontdict={"size": 14})
+        plt.title('Cмуги коливання частот, залежно від довірчих інтервалів', fontdict={"size": 16})
+
+        # plt.savefig(f'{path}{xlabel}.png', dpi=100)
+
+        if show:
+            plt.show()
+
+    return tuple(stripes.values())
 
 
 # коефіцієнт варіації у відсотках - V
@@ -317,7 +320,9 @@ def get_sample_size(coef_of_var: float, rel_err: float = 0.045) -> int:
     denominator = rel_err ** 2
     return int(statistical_round(numerator / denominator, 0))
 
+
 # x = (78, 72, 69, 81, 63, 67, 65, 75, 9, 100, 100, 400, 400, 350, 350, 400, 74, 1, 83, 71, 79, 80, 69)
 # frequency_polygon_by_intervals(x, 'NOUN frequency')
 # frequency_polygon(x, 'NOUN frequency polygon')
-# frequency_fluctuations(1.89, 1.25, visualise=True)
+# print(frequency_fluctuations((1.89,), (1.25,), visualise=True))
+print(frequency_fluctuations((1.89, 2.55), (1.25, 1.0), visualise=True, path="", show=True))
