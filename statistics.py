@@ -1,9 +1,7 @@
 import collections
 from collections import defaultdict
 import matplotlib.pyplot as plt
-from matplotlib import text
 from math import log10, sqrt
-import numpy as np
 
 
 def statistical_round(num: float, rounding: int = 2) -> float:
@@ -13,6 +11,9 @@ def statistical_round(num: float, rounding: int = 2) -> float:
     :param rounding: скільки знаків потрібно залишити, дефолтне значення - 2
     :return: округлений дріб
     """
+    if rounding == 0:
+        round(num+0.00000001)
+
     num_str = str(num)
     index = num_str.index('.')
 
@@ -26,16 +27,25 @@ def statistical_round(num: float, rounding: int = 2) -> float:
     return round(float(num_str), rounding+zeros)
 
 
-# варіаційний ряд
 def group(frequencies: tuple) -> dict:
+    """
+    Функція для організації частот у *варіаційний* (статистичний) ряд.
+    :param frequencies: частоти досліджуваної одиниці у підвибірках
+    :return: варіаційний ряд по типу {частота: штуки}
+    """
     grouped_freqs = defaultdict(int)
     for freq in frequencies:
         grouped_freqs[freq] += 1
     return dict(sorted(grouped_freqs.items()))
 
 
-# інтервальний ряд
 def group_by_intervals(frequencies: tuple) -> dict:
+    """
+    Функція для організації *інтервального* ряду.
+    Кількість інтервалів визначається автоматично.
+    :param frequencies: частоти досліджуваної одиниці у підвибірках
+    :return: інтервальний ряд по типу {(початок інтервалу - нестрогий, кінець інтервалу - стогий): штуки}
+    """
     n = len(frequencies)
     num_of_intervals = 1 + int(3.322 * log10(n))
     h = (max(frequencies) - min(frequencies)) / (num_of_intervals - 1)
@@ -51,15 +61,25 @@ def group_by_intervals(frequencies: tuple) -> dict:
     return dict(intervals)
 
 
-# полігон частот
-def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20,
-                                   path="results\\pos\\freq_his\\") -> None:
+def frequency_polygon_by_intervals(frequencies: tuple, xlabel: str, x_max: int = 400, y_max: int = 70,
+                                   x_ticks_freq: int = 20, show: bool = True, path="results\\pos\\freq_his\\") -> None:
+    """
+    Функція для створення графіків із інтервальними полігоном частот та гістаграмою.
+    :param frequencies: частоти досліджуваної одиниці у підвибірках
+    :param xlabel: назва досліджуваної одиниці
+    :param x_max: ширина графіка
+    :param y_max: висота графіка
+    :param show: якщо True, то графік з'явиться на екрані
+    :param x_ticks_freq: інтервал рисок на вісі Ох
+    :param path: шлях до теки, куди потрібно зберегти графік; якщо вказано "", то файл зберігатися не буде
+    :return: None
+    """
     plt.figure(figsize=(12, 7))
 
-    n = len(data)
+    n = len(frequencies)
     num_of_intervals = 1 + int(3.322 * log10(n))
 
-    a, bins, c = plt.hist(data, bins=num_of_intervals, histtype='step')
+    a, bins, c = plt.hist(frequencies, bins=num_of_intervals, histtype='step')
     l = list(bins)
     l.insert(0, 0)
     l.insert(len(bins) + 1, bins[len(bins) - 1])
@@ -92,17 +112,30 @@ def frequency_polygon_by_intervals(data: tuple, xlabel: str, x_max=400, y_max=70
     plt.title(f"Інтервальні полігон частот і гістограма для {xlabel}")
     plt.xlabel(xlabel)
 
-    plt.savefig(f'{path}{xlabel}.png', dpi=100)
+    if path:
+        plt.savefig(f'{path}{xlabel}.png', dpi=100)
 
     if show:
         plt.show()
 
 
-def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20,
+def frequency_polygon(frequencies: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20,
                       path="results\\pos\\freq_pol\\"):
+    """
+    Функція для створення графіків з полігоном частот.
+    :param frequencies: частоти досліджуваної одиниці у підвибірках
+    :param xlabel: назва досліджуваної одиниці
+    :param x_max: ширина графіка
+    :param y_max: висота графіка
+    :param show: якщо True, то графік з'явиться на екрані
+    :param x_ticks_freq: інтервал рисок на вісі Ох
+    :param path: шлях до теки, куди потрібно зберегти графік; має завершуватися на \\;
+                 якщо вказано "", то файл зберігатися не буде
+    :return: None
+    """
     plt.figure(figsize=(12, 7))
 
-    grouped_data = group(data)
+    grouped_data = group(frequencies)
     freqs = grouped_data.keys()
     nums = grouped_data.values()
     plt.plot(freqs, nums)
@@ -123,14 +156,20 @@ def frequency_polygon(data: tuple, xlabel: str, x_max=400, y_max=70, show=True, 
     plt.ylabel('Кількість підвибірок')
     plt.title(f"Полігон частот на варіаційному ряді {xlabel}")
 
-    plt.savefig(f'{path}{xlabel}.png', dpi=100)
+    if path:
+        plt.savefig(f'{path}{xlabel}.png', dpi=100)
 
     if show:
         plt.show()
 
 
-# середня частота x-
 def arithmetic_mean(grouped_data: dict, intervals=False) -> float:
+    """
+    Обчислює середню арифметичну частоту з варіаційного (статистичного) ряду. x- (ікс із дашком)
+    :param grouped_data: варіаційний чи інтервальний ряд
+    :param intervals: чи вказано інтервальний ряд
+    :return: середнє арифметичне з частот
+    """
     sum_ = 0
     for key, value in grouped_data.items():
 
@@ -165,12 +204,13 @@ def standard_deviation(grouped_data, arithmetic_mean_: float, interval=False) ->
 def standard_error(st_dev: float, num_of_freq: int, s: bool) -> float:
     """
     Міра коливання середньої частоти. СИГМА_Х_середнє
-    Стандартна похибка відхилення середньої
+    АБО
+    Стандартна похибка відхилення середньої (залежить від параметра s)
     :param st_dev: standard deviation | середнє квадратичне відхилення
     :param num_of_freq: number of frequencies | кількість частот
     :param s: якщо True, то функція поверне *стандартну похибку відхилення середньої частоти*
     (важливо, коли вибірок менше 50)
-    :return: десятковий дріб *міри коливання середньої частоти* або *стандартну похибку відхилення середньої частоти*
+    :return: десятковий дріб *міри коливання середньої частоти* або *стандартної похибки відхилення середньої частоти*
     (залежить від параметра s)
     """
     if s:
@@ -178,96 +218,153 @@ def standard_error(st_dev: float, num_of_freq: int, s: bool) -> float:
     return statistical_round(st_dev / sqrt(num_of_freq), 2)
 
 
-# смуги коливання частот
-def frequency_fluctuations(arithmetic_means: tuple, st_devs: tuple, visualise: bool, path: str,
-                           order_of_sub: tuple = ("authors", "folklore"), confidences: tuple = (68.3, 95.5, 99.7),
-                           show: bool = False) -> tuple:
-    stripes = collections.defaultdict(dict)
-    confidences_full = (68.3, 95.5, 99.7)
+def create_stripe(mean_: float, st_dev: float, mtpl: int) -> tuple:
+    """
+    Обраховує смугу коливання для заданого довірчого інтервалу (похибки).
+    :param mean_: середнє арифметичне
+    :param st_dev: середнє квадратичне відхилення
+    :param mtpl: 1, 2 або 3, залежно від потрібного коефіцієнта для середнього квадратичного відхилення
+    :return: інтервал для смуги коливання
+    """
+    start = statistical_round(mean_ - (mtpl * st_dev))
+    end = statistical_round(mean_ + (mtpl * st_dev))
+    return start, end
 
-    for mltpl, confidence in enumerate(confidences_full, 1):
-        for index, mean_ in enumerate(arithmetic_means):
-            if confidences[mltpl-1] == float(confidence):
-                start = statistical_round(mean_ - (mltpl * st_devs[index]))
-                end = statistical_round(mean_ + (mltpl * st_devs[index]))
-            else:
-                start = 0
-                end = 0
-            stripes[order_of_sub[index]][confidence] = (start, end)
+
+def visualise_freq_fluct(stripes_level: dict, all_nums: tuple, title: str, show: bool, path: str,
+                         confidences_full: tuple = (68.3, 95.5, 99.7)) -> None:
+    """
+    Створює графік для порівняння смуг коливання з двох різних вибірок.
+    :param confidences_full: список можливих довірчих інтервалів
+    :param stripes_level: інтервали обрахованих смуг коливання
+    :param all_nums: всі межі інтервалів з обох вибірок (щоб підписати риски)
+    :param show: якщо True, то графік з'явиться на екрані
+    :param title: назва досліджуваної одиниці
+    :param path: шлях до теки, куди потрібно зберегти графік; має завершуватися на \\;
+                 якщо вказано "", то файл зберігатися не буде
+    :return: None
+    """
+    plt.figure(figsize=(16, 7))
+
+    mult = 30
+    levels_y = list(range(70, 105, 15))
+    plt.ylim([60, 110])
+    plt.yticks(levels_y, [f"{conf}%,  {index}σ " for index, conf in enumerate(confidences_full, 1)],
+               fontdict={"size": 11})
+
+    plt.xlim([min(all_nums) * mult - 10, max(all_nums) * mult + 10])
+    plt.xticks([x * mult for x in all_nums], all_nums, rotation=45, fontdict={"size": 8.3})
+
+    for stripes, level in zip(stripes_level.values(), levels_y):
+        y_value = level + 3
+        line_a, = plt.plot([d * mult for d in stripes[0]], (y_value, y_value), color='green', linewidth=1.7,
+                           label='authors')
+        [plt.vlines(x=d * mult, ymin=0, ymax=y_value, colors='green', linestyles=':', linewidth=1.3, alpha=0.7)
+         for d in stripes[0]]
+
+        y_value = level - 3
+        line_f, = plt.plot([d * mult for d in stripes[1]], (y_value, y_value), color='blue', linewidth=1.7,
+                           label='folklore')
+        [plt.vlines(x=d * mult, ymin=0, ymax=y_value, colors='blue', linestyles=':', linewidth=1.3, alpha=0.7)
+         for d in stripes[1]]
+
+    plt.vlines(x=0, ymin=0, ymax=110, colors="black", linestyles='-', linewidth=1, alpha=0.6)
+
+    plt.legend(handles=[line_a, line_f])
+    plt.xlabel('Смуги коливання', fontdict={"size": 14})
+    plt.title(f'Cмуги коливання частот для довірчих інтервалів {title}', fontdict={"size": 16})
+
+    if path:
+        plt.savefig(f'{path}{title}.png', dpi=100)
+
+    if show:
+        plt.show()
+
+
+def frequency_fluctuations(arithmetic_means: tuple, st_devs: tuple, visualise: bool, path: str, title: str,
+                           order_of_sub: tuple = ("authors", "folklore"), confidences: tuple = (68.3, 95.5, 99.7),
+                           show: bool = False) -> dict:
+    """
+    Функція, що будує смуги коливання частот для заданих довірчих інтервалів та візуалізує їх на графіку.
+    :param arithmetic_means: значення арифметичних середніх для обох вибірок
+    :param st_devs: значення середнього квадратичного відхилення для обох вибірок
+    :param order_of_sub: назви вибірок у порядку, в якому вказані середнє арифметичне та середнє квадратичне відхилення
+    :param visualise: якщо True, то буде автоматично створено графік, який можна буде вивести на екран та/або зберегти
+    :param path: шлях до теки, куди потрібно зберегти графік; має завершуватися на \\;
+                 якщо вказано "", то файл зберігатися не буде
+    :param title: назва досліджуваної одиниці
+    :param confidences: кортеж бажаних довірчих інтервалів
+    :param show: якщо True, то графік з'явиться на екрані
+    :return: інтервали коливання частот для обох вибірок (з назвами, вказаними у order_of_sub)
+    """
+    confidences_full = (68.3, 95.5, 99.7)
+    stripes_type = collections.defaultdict(dict)
+    stripes_level = collections.defaultdict(list)
+    all_nums = [0]
+
+    for mtpl, confidence in enumerate(confidences_full, 1):
+        for index_, mean_ in enumerate(arithmetic_means):
+            if confidences[mtpl - 1] == float(confidence):
+                stripe = create_stripe(mean_, st_devs[index_], mtpl)
+                stripes_type[order_of_sub[index_]][confidence] = stripe
+                stripes_level[confidence].append(stripe)
+                all_nums.extend(stripe)
 
     if visualise:
-        plt.figure(figsize=(15, 7))
+        visualise_freq_fluct(stripes_level, tuple(all_nums), title, show, path, confidences_full)
 
-        data = collections.defaultdict(list)
-        x_ticks = [0]
-
-        # чи можна інтегрувати в попередній цикл?
-        for index, level in enumerate(confidences_full, 1):
-            for key, dict_ in stripes[index].items():
-                data[key].append(dict_)
-                x_ticks.extend(dict_)
-
-        mult = 30
-        levels_y = list(range(70, 105, 15))
-        plt.ylim([60, 110])
-        plt.yticks(levels_y, [f"{conf}%,  {index}σ " for index, conf in enumerate(confidences_full, 1)],
-                   fontdict={"size": 11})
-        plt.xlim([min(x_ticks)*mult-10, max(x_ticks)*mult+10])
-        plt.xticks([x*mult for x in x_ticks], x_ticks, rotation=45, fontdict={"size": 8.3})
-
-        for data_, level in zip(data.values(), levels_y):
-            y_value = level + 3
-            line_a, = plt.plot([d*mult for d in data_[0]], (y_value, y_value), color='green', linewidth=1.7,
-                               label='authors')
-            [plt.vlines(x=d*mult, ymin=0, ymax=y_value, colors='green', linestyles=':', linewidth=1.3, alpha=0.7)
-             for d in data_[0]]
-            print("here")
-            y_value = level - 3
-            line_f, = plt.plot([d*mult for d in data_[1]], (y_value, y_value), color='blue', linewidth=1.7,
-                               label='folklore')
-            [plt.vlines(x=d*mult, ymin=0, ymax=y_value, colors='blue', linestyles=':', linewidth=1.3, alpha=0.7)
-             for d in data_[1]]
-        plt.vlines(x=0, ymin=0, ymax=110, colors="black", linestyles='-', linewidth=1, alpha=0.6)
-        plt.legend(handles=[line_a, line_f])
-
-        plt.xlabel('Смуги коливання', fontdict={"size": 14})
-        plt.title('Cмуги коливання частот, залежно від довірчих інтервалів', fontdict={"size": 16})
-
-        # plt.savefig(f'{path}{xlabel}.png', dpi=100)
-
-        if show:
-            plt.show()
-
-    return tuple(stripes.values())
+    return stripes_type
 
 
-# коефіцієнт варіації у відсотках - V
 def coefficient_of_variation(st_dev: float, arithmetic_mean_: float) -> float:
+    """
+    Коефіцієнт варіації V.
+    :param st_dev: середнє квадратичне відхилення
+    :param arithmetic_mean_: середнє арифметичне
+    :return: значення коефіцієнта варіації від 0 до 1
+    """
     return statistical_round(st_dev / arithmetic_mean_)
 
 
-# коефіцієнт стабільности  (від 0 до 1) - D
-def relative_coefficient_of_variation(st_dev: float, arithmetic_mean_: float, number_of_freq, absolute_freq: bool):
+def relative_coefficient_of_variation(st_dev: float, arithmetic_mean_: float, num_of_subs: int,
+                                      absolute_freq: bool) -> float:
+    """
+    Коефіцієнт стабільности D.
+    :param st_dev: середнє квадратичне відхилення
+    :param arithmetic_mean_: середнє арифметичне
+    :param num_of_subs: кількість підвирірок
+    :param absolute_freq: # насправді ні на що не впливає, але у підручнику було два варіанти обрахунків #
+    :return: значення коефіцієнта стабільности від 0 до 1
+    """
     if absolute_freq:
-        d = 1 - (st_dev / (arithmetic_mean_ * sqrt(number_of_freq - 1)))
+        d = 1 - (st_dev / (arithmetic_mean_ * sqrt(num_of_subs - 1)))
     else:
         v = st_dev / arithmetic_mean_
-        v_max = sqrt(number_of_freq - 1)
+        v_max = sqrt(num_of_subs - 1)
         d = 1 - (v / v_max)
     return statistical_round(d)
 
 
-# відносна похибка
-def relative_error(st_err_mean=(), st_dev_mean_freq_num=(), var_coef_freq_num=()) -> float:
+def relative_error(st_err_mean: tuple = (), st_dev_mean_subs_num: tuple = (), var_coef_subs_num: tuple = ()) -> float:
+    """
+    Відносна похибка дослідження. Обрахунок трьома різними наборами даних - заповніть один із параметрів функції
+    (якщо заповнити більше, то результат буде за найостаннішим параметром).
+    Порядок вказування даних у кортежі важливий!
+    :param st_err_mean: міра коливання середньої частоти: float; середнє арифметичне: float
+    :param st_dev_mean_subs_num: середнє квадратичне відхилення: float; середнє арифметичне: float;
+                                 кількість підвибірок: int
+    :param var_coef_subs_num: коефіцієнт варіації: float; кількість підвибірок: int
+    :return: значення відносної похибки
+    """
     k = 1.96
     e = 0
 
     if len(st_err_mean) == 2:
         e = (k * st_err_mean[0]) / st_err_mean[1]
-    elif len(st_dev_mean_freq_num) == 3:
-        e = (k * st_dev_mean_freq_num[0]) / (st_dev_mean_freq_num[1] * sqrt(st_dev_mean_freq_num[2]))
-    elif len(var_coef_freq_num) == 2:
-        e = (k * var_coef_freq_num[0]) / sqrt(var_coef_freq_num[1])
+    elif len(st_dev_mean_subs_num) == 3:
+        e = (k * st_dev_mean_subs_num[0]) / (st_dev_mean_subs_num[1] * sqrt(st_dev_mean_subs_num[2]))
+    elif len(var_coef_subs_num) == 2:
+        e = (k * var_coef_subs_num[0]) / sqrt(var_coef_subs_num[1])
     else:
         print("No combination of data fits!")
 
@@ -275,11 +372,21 @@ def relative_error(st_err_mean=(), st_dev_mean_freq_num=(), var_coef_freq_num=()
 
 
 def relative_subtraction(num1, num2) -> float:
+    """
+    Відносна різниця.
+    :param num1: перше число - від нього віднімають і на нього ділять
+    :param num2: друге число - його віднімають
+    :return: значення відносної різниці
+    """
     return statistical_round(abs(num1 - num2) / num1)
 
 
-# перевірка на статистичну однорідність, хі-2
 def check_uniformity(samples_subs_freqs: tuple) -> int:
+    """
+    Перевірка на статистичну однорідність, критерій однорідности хі-2
+    :param samples_subs_freqs: кортеж кортежів підвибірок вирірок, які потрібно порівняти
+    :return: значення критерію однорідности
+    """
     abs_sample_freqs = [sum(sample) for sample in samples_subs_freqs]
     total_sum = sum(abs_sample_freqs)
     abs_subsample_freqs = [0] * len(samples_subs_freqs[0])
@@ -299,22 +406,38 @@ def check_uniformity(samples_subs_freqs: tuple) -> int:
     return x_2
 
 
-# кількість ступенів свободи
-def freedom_greade(num_of_subsamples: tuple, num_of_samples: int, students_criterion_=False):
+def freedom_greade(num_of_subsamples: tuple, num_of_samples: int, students_criterion_=False) -> int:
+    """
+    Підрахунок кількости ступенів свободи
+    :param num_of_subsamples: кількість підвибірок
+    :param num_of_samples: кількість вибірок
+    :param students_criterion_: значення критерію Стьюдента
+    :return: кількість ступенів свободи
+    """
     if students_criterion_:
         return sum(num_of_subsamples) - len(num_of_subsamples)
     return (num_of_subsamples[0] - 1) * (num_of_samples - 1)
 
 
-# критерій Стьюдента
 def students_criterion(samples_mean_freq: tuple, s_: tuple) -> float:
+    """
+    Критерій Стьюдента
+    :param samples_mean_freq:
+    :param s_:
+    :return: значення критерію Стьюдента
+    """
     numerator = abs(samples_mean_freq[0] - samples_mean_freq[1])
     denominator = sqrt(s_[0] ** 2 + s_[1] ** 2)
     return statistical_round(numerator / denominator)
 
 
-# Необхідний обсяг вибірки для досягнення заданої відносної похибки дослідження
 def get_sample_size(coef_of_var: float, rel_err: float = 0.045) -> int:
+    """
+    Точний обрахунок обсягу вибірки для досягнення заданої відносної похибки дослідження
+    :param coef_of_var: коефіцієнт варіації для певної одиниці
+    :param rel_err: відносна похибка дослідження (бажана): 0.317 (точність 68.3%), 0.045 (95.5%) чи 0.003 (99.7%)
+    :return: кількість підвибірок по 1000 слововживань, необхідні для дослідження одиниці із бажаним рівнем похибки
+    """
     k = 1.96
     numerator = (k ** 2) * (coef_of_var ** 2)
     denominator = rel_err ** 2
@@ -325,4 +448,4 @@ def get_sample_size(coef_of_var: float, rel_err: float = 0.045) -> int:
 # frequency_polygon_by_intervals(x, 'NOUN frequency')
 # frequency_polygon(x, 'NOUN frequency polygon')
 # print(frequency_fluctuations((1.89,), (1.25,), visualise=True))
-print(frequency_fluctuations((1.89, 2.55), (1.25, 1.0), visualise=True, path="", show=True))
+print(frequency_fluctuations((1.89, 2.55), (1.25, 1.0), visualise=True, path="", show=True, title="random"))
