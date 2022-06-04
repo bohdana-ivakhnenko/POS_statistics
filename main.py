@@ -214,9 +214,9 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
             print(st_err_a, st_err_f, file=file, end='\n\n', sep='\t')
 
             print(f"Смуги коливання у вибірці (середнє квадратичне відхилення):",
-                  "автори", stripes_dev['authors'], "фольк", stripes_dev['folklore'], sep="\n", file=file)
+                  "автори", stripes_dev['authors'], "фольк", stripes_dev['folklore'], sep="\n", file=file, end="\n\n")
             print(f"Смуги коливання у генеральній сукупності (міра коливання середньої):",
-                  "автори", stripes_err['authors'], "фольк", stripes_err['folklore'], sep="\n", file=file)
+                  "автори", stripes_err['authors'], "фольк", stripes_err['folklore'], sep="\n", file=file, end="\n\n")
 
             print(f"Коефіцієнт варіації - V (у відсотках):\nавтори\tфольк", file=file)
             print(coef_var_a, coef_var_f, file=file, end='\n\n', sep='\t')
@@ -249,7 +249,7 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
                 st_a = st.standard_error(st_dev_a, len(subs_a), s=True)
                 st_f = st.standard_error(st_dev_f, len(subs_f), s=True)
                 st_t_test = st.students_t_test((mean_a, mean_f), (st_a, st_f))
-                fr_gr_stud = st.freedom_greade((sum(subs_a), sum(subs_f)), len(samples), students_criterion_=True)
+                fr_gr_stud = st.freedom_greade((sum(subs_a), sum(subs_f)), len(samples), students_t_test_=True)
                 print(f"\n\nКритерій Стьюдента:\t", st_t_test, file=file)
                 print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
 

@@ -439,15 +439,15 @@ def check_uniformity(samples_subs_freqs: tuple) -> float:
     return statistical_round(x_2)
 
 
-def freedom_greade(num_of_subsamples: tuple, num_of_samples: int, students_criterion_=False) -> int:
+def freedom_greade(num_of_subsamples: tuple, num_of_samples: int, students_t_test_=False) -> int:
     """
     Підрахунок кількости ступенів свободи.
     :param num_of_subsamples: кількість підвибірок
     :param num_of_samples: кількість вибірок
-    :param students_criterion_: значення критерію Стьюдента
+    :param students_t_test_: значення критерію Стьюдента
     :return: кількість ступенів свободи
     """
-    if students_criterion_:
+    if students_t_test_:
         return sum(num_of_subsamples) - len(num_of_subsamples)
     return (num_of_subsamples[0] - 1) * (num_of_samples - 1)
 
