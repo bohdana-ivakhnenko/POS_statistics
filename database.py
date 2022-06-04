@@ -2,6 +2,11 @@ import sqlite3
 
 
 def organize_values(line) -> str:
+    """
+    Перетворює список значень на перелік у стрічці, ставлячи стрічкові значення у лапки.
+    :param line: список значень
+    :return: список у стрічці типу "'a', 0, 1, 'м''яч'"
+    """
     values = ""
     for value in line:
         if type(value) == int:
@@ -21,6 +26,14 @@ class Database:
         self.c = self.conn.cursor()
 
     def create_table(self, table_name: str, columns: tuple, autoincrement=True, drop=False) -> str:
+        """
+        Автоматично конструює SQL-запит для створення таблиці та виконує його.
+        :param table_name: назва таблиці
+        :param columns: список назв атрибутів (стовпчиків)
+        :param autoincrement: якщо True, то перший атрибут - id, буде створено автоматично
+        :param drop: якщо True, то перед створенням таблиця буде видалено
+        :return: створений SQL-запит
+        """
         if drop:
             self.delete_table(table_name)
 
@@ -37,6 +50,19 @@ class Database:
 
     def read_from_table(self, name: str, columns=(), where="", num=0, order_by="", desc=True, return_description=False,
                         print_query=True) -> tuple:
+        """
+        Автоматично створює SQL-запит для читання записів у таблиці.
+        :param name: назва таблиці
+        :param columns: список атрибутів (стовпчиків) у тій же послідовності, що й дані для них; якщо (), то зчитає всі
+        :param where: фільтр пошуку - додається до запиту напряму, без перетворень!
+        :param num: кількість рядків, які будуть зчитані; якщо 0, то ліміту не буде
+        :param order_by: назва атрибута (стовпчика), за яким буде відсортовано результати
+        :param desc: напрямок сортування; якщо True, то за спаданням
+        :param return_description: якщо True, то функція поверне не лише зчитані рядки, а й опис таблиці
+        :param print_query: чи друкувати SQL-запит перед виконанням
+        :return: список зчитаних рядків із таблиці;
+                 якщо return_description True, то також і опис таблиці (другим елементом)
+        """
         if columns:
             columns = f"({' ,'.join(columns).strip(' ,')})"
         else:
@@ -66,12 +92,18 @@ class Database:
         return data
 
     def insert_into_table(self, name: str, data, multiple_rows: bool):
+        """
+        Автоматично створює SQL-запит для додавання дани до таблиці і виконує його.
+        :param name: назва таблиці
+        :param data: дані, які необхідно додати (для цілого рядка)
+        :param multiple_rows: якщо True, то дані не для одного рядка, а багатьох
+        :return: створений SQL-запит
+        """
         query = ""
         if multiple_rows:
             for row in data:
                 query = f"INSERT INTO {name} VALUES "
                 query += organize_values(row)
-                # print("insert", query)
                 self.c.execute(query)
                 self.conn.commit()
         else:
@@ -82,6 +114,11 @@ class Database:
         return query
 
     def delete_table(self, table_name: str) -> None:
+        """
+        Автоматично створює SQL-запит для видалення таблиці та виконує його.
+        :param table_name: назва таблиці
+        :return: None
+        """
         drop_query = f"DROP TABLE IF EXISTS {table_name}"
         self.c.execute(drop_query)
         self.conn.commit()
