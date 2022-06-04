@@ -4,10 +4,25 @@ nlp = stanza.Pipeline('uk', processors='lemma,pos,tokenize', package='iu')
 
 
 def create_numeration(data):
+    """
+    Створює нумерацію для рядків даних.
+    :param data: рядки
+    :return: нумеровані рядки (id вставляється на нульову позицію)
+    """
     return [tuple([id_] + list(line)) for id_, line in enumerate(data)]
 
 
 def into_subsamples(text: str, num_of_sub=0) -> list:
+    """
+    Перетворює рядки рядки словоформ, розділених на підвибірки:
+    - токенізує текст;
+    - відбирає з нього лише літерні послідовності (слова);
+    - для кожного слова визначає лему і частину мови;
+    - ділить отримані рядки на підвибірки по 1000 одиниць.
+    :param text: текст для аналізу
+    :param num_of_sub: кількість підвибірок; якщо 0, то їх буде стільки, на скільки вистачить даних
+    :return: підвибірки з рядками по типу (словоформа, лема, чатина мови)
+    """
     sents = nlp(text).sentences
     word_forms = []
     alphabet = "абвгґдеєзжиіїйклмнопрстуфхцчшщьюя'"
@@ -29,6 +44,12 @@ def into_subsamples(text: str, num_of_sub=0) -> list:
 
 
 def into_word_forms_table(word_forms_sub: list, auto_num=True) -> set:
+    """
+    Перетворює підвибірки словоформ на рядки для таблиці, частота вживання підрахована загалом і для кожної підвибірки.
+    :param word_forms_sub: підвибірки з рядками по типу (словоформа, лема, чатина мови)
+    :param auto_num: якщо False, то пронумерує рядки
+    :return: рядки зі словоформами
+    """
     unique_word_forms = []
     word_lines = []
     subsamples = [0] * len(word_forms_sub)
@@ -54,6 +75,13 @@ def into_word_forms_table(word_forms_sub: list, auto_num=True) -> set:
 
 
 def into_lemmas_table(word_forms: tuple, auto_num=True) -> set:
+    """
+    Переорганізовує пронумеровані рядки із таблиці словоформ у рядки для таблиці лем, з підрахованою частотою вживання:
+     загальною у вибірці і для кожної підвибірки зокрема.
+    :param word_forms: пронумеровані рядки із таблиці словоформ
+    :param auto_num: якщо False, то пронумерує рядки
+    :return: рядки із лемами
+    """
     add = 1
     if not auto_num or type(word_forms[0][0]) == int:
         add = 2
@@ -83,6 +111,15 @@ def into_lemmas_table(word_forms: tuple, auto_num=True) -> set:
 
 
 def into_pos_table(lemmas: tuple, auto_num=True, filter_=False) -> set:
+    """
+    Переорганізовує пронумеровані рядки із таблиці лем у рядки для таблиці частин мови,
+    з підрахованою частотою вживання: загальною у вибірці і для кожної підвибірки зокрема.
+    :param lemmas: пронумеровані рядки лем
+    :param auto_num: якщо False, то пронумерує рядки
+    :param filter_: якщо True, то частини мови будуть пересортовані із
+                    системи stanza на наближену до української (але спрощену)
+    :return: рядки з даними про частину мови
+    """
     add = 1
     if not auto_num or type(lemmas[0][0]) == int:
         add = 2
