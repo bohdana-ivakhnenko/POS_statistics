@@ -116,7 +116,7 @@ def do_reading(sample_name: str, db, num_of_rows: int = -1,
 
 def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, where="",
                     results_path="results\\pos\\", freq_hist_path="freq_hist\\", freq_pol_path="freq_pol\\",
-                    freq_str_path="freq_stripes\\",
+                    freq_str_dev_path="freq_str_samp\\", freq_str_err_path="freq_str_pop\\",
                     show=False, x_max=400, x_ticks_freq=20) -> None:
     """
     Збірна функція для виконання всіх необхідних статистичних обрахунків.
@@ -128,7 +128,8 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
     :param results_path: шлях до теки з результатами обрахунків
     :param freq_hist_path: шлях до теки, де будуть файли з інтервальними полігоном частот та гістограмою
     :param freq_pol_path: шлях до теки, де будуть файли із графіками звичайного полігону частот
-    :param freq_str_path: шлях до теки, де будуть файли із графіками смуг коливання
+    :param freq_str_dev_path: шлях до теки, де будуть файли із графіками смуг коливання у вибірці
+    :param freq_str_err_path: шлях до теки, де будуть файли із графіками смуг коливання у генеральній сукупності
     :param show: якщо True, то буде виведено на екран всі створені графіки
     :param x_max: ширина осі Х (до якого числа)
     :param x_ticks_freq: частота малювання рисок на осі Х
@@ -165,10 +166,17 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
         st_err_f = st.standard_error(st_dev_f, len(subs_f), s=False)
 
         if freq_str:
-            stripes = st.frequency_fluctuations((mean_a, mean_f), (st_dev_a, st_dev_f), visualise=True, show=show,
-                                                path=results_path+freq_str_path, title=data_a[1])
+            stripes_dev = st.frequency_fluctuations((mean_a, mean_f), (st_dev_a, st_dev_f), param_type="st_dev",
+                                                    visualise=True, show=show, path=results_path+freq_str_dev_path,
+                                                    title=data_a[1])
+            stripes_err = st.frequency_fluctuations((mean_a, mean_f), (st_err_a, st_err_f), param_type="st_err",
+                                                    visualise=True, show=show, path=results_path + freq_str_err_path,
+                                                    title=data_a[1])
         else:
-            stripes = st.frequency_fluctuations((mean_a, mean_f), (st_dev_a, st_dev_f), visualise=False)
+            stripes_dev = st.frequency_fluctuations((mean_a, mean_f), (st_dev_a, st_dev_f), param_type="st_dev",
+                                                    visualise=False)
+            stripes_err = st.frequency_fluctuations((mean_a, mean_f), (st_err_a, st_err_f), param_type="st_err",
+                                                    visualise=False)
 
         coef_var_a = st.coefficient_of_variation(st_dev_a, mean_a)
         coef_var_f = st.coefficient_of_variation(st_dev_f, mean_f)
@@ -205,8 +213,10 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
             print(f"Міра коливання середньої частоти:\nавтори\tфольк", file=file)
             print(st_err_a, st_err_f, file=file, end='\n\n', sep='\t')
 
-            print(f"Смуги коливання:\nавтори\tфольк", file=file)
-            print(stripes["authors"], stripes["folklore"], file=file, end='\n\n', sep='\t')
+            print(f"Смуги коливання у вибірці (середнє квадратичне відхилення):",
+                  "автори", stripes_dev['authors'], "фольк", stripes_dev['folklore'], sep="\n", file=file)
+            print(f"Смуги коливання у генеральній сукупності (міра коливання середньої):",
+                  "автори", stripes_err['authors'], "фольк", stripes_err['folklore'], sep="\n", file=file)
 
             print(f"Коефіцієнт варіації - V (у відсотках):\nавтори\tфольк", file=file)
             print(coef_var_a, coef_var_f, file=file, end='\n\n', sep='\t')
@@ -225,19 +235,22 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
             print(f"Приклад рядка фольк:", file=file)
             print(data_f, file=file)
 
-            if data_a in ["NOUN", "VERB", "CONJ"]:
-                samples = (data_a, data_f)
+            idx = 2
+            if table.startswith("pos"):
+                idx = 1
+            if data_a[idx] in ["NOUN", "VERB", "CONJ"]:
+                samples = (subs_a, subs_f)
                 unif = st.check_uniformity(samples)
                 fr_gr = st.freedom_greade((len(subs_a),), len(samples))
-                print(f"Перевірка на статистичну однорідність - х^2:\t", unif, file=file)
-                print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='\n\n')
+                print(f"\n\nПеревірка на статистичну однорідність - х^2:\t", unif, file=file)
+                print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='')
 
-            if data_a in ["ADJ", "ADV", "PREP"]:
+            if data_a[idx] in ["ADJ", "ADV", "PREP"]:
                 st_a = st.standard_error(st_dev_a, len(subs_a), s=True)
                 st_f = st.standard_error(st_dev_f, len(subs_f), s=True)
                 st_t_test = st.students_t_test((mean_a, mean_f), (st_a, st_f))
                 fr_gr_stud = st.freedom_greade((sum(subs_a), sum(subs_f)), len(samples), students_criterion_=True)
-                print(f"Критерій Стьюдента:\t", st_t_test, file=file)
+                print(f"\n\nКритерій Стьюдента:\t", st_t_test, file=file)
                 print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
 
         if polygons:
@@ -286,16 +299,16 @@ if __name__ == '__main__':
 
     # ОБРАХУНКИ
     do_calculations(db, polygons=True, freq_str=True)
-    do_calculations(db, table="lemmas", where="lemma = 'бути' AND pos in ('VERB', 'AUX')",
-                    polygons=True, freq_str=True, results_path="results\\high_freq\\", x_max=50, x_ticks_freq=5)
-
-    do_calculations(db, table="lemmas", where="lemma = 'ти' AND pos = 'PRON'",
-                    polygons=True, freq_str=True, results_path="results\\high_freq\\", x_max=50, x_ticks_freq=5)
-
-    do_calculations(db, table="lemmas", where="lemma = 'дрібний' AND pos in ('DET', 'ADJ')",
-                    polygons=True, freq_str=True, results_path="results\\low_freq\\", x_max=50, x_ticks_freq=5)
-
-    do_calculations(db, table="lemmas", where="lemma = 'великий' AND pos in ('DET', 'ADJ')",
-                    polygons=True, freq_str=True, results_path="results\\low_freq\\", x_max=50, x_ticks_freq=5)
+    # do_calculations(db, table="lemmas", where="lemma = 'бути' AND pos in ('VERB', 'AUX')",
+    #                 polygons=True, freq_str=True, results_path="results\\high_freq\\", x_max=50, x_ticks_freq=5)
+    #
+    # do_calculations(db, table="lemmas", where="lemma = 'ти' AND pos = 'PRON'",
+    #                 polygons=True, freq_str=True, results_path="results\\high_freq\\", x_max=50, x_ticks_freq=5)
+    #
+    # do_calculations(db, table="lemmas", where="lemma = 'дрібний' AND pos in ('DET', 'ADJ')",
+    #                 polygons=True, freq_str=True, results_path="results\\low_freq\\", x_max=50, x_ticks_freq=5)
+    #
+    # do_calculations(db, table="lemmas", where="lemma = 'великий' AND pos in ('DET', 'ADJ')",
+    #                 polygons=True, freq_str=True, results_path="results\\low_freq\\", x_max=50, x_ticks_freq=5)
 
     db.conn.close()

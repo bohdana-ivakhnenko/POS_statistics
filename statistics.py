@@ -228,20 +228,23 @@ def standard_error(st_dev: float, num_of_freq: int, s: bool) -> float:
     return statistical_round(st_dev / sqrt(num_of_freq), 2)
 
 
-def create_stripe(mean_: float, st_dev: float, mtpl: int) -> tuple:
+def create_stripe(mean_: float, st_err_dev: float, mtpl: int) -> tuple:
     """
     Обраховує смугу коливання для заданого довірчого інтервалу (похибки).
+    При обрахунку із *середнім квадратичним відхиленням* отримуємо коливання середньої частоти у вибірці.
+    При обрахунку із *мірою коливання середньої частоти* отримуємо прогноз коливання середньої частоти
+    в генеральній сукупності.
     :param mean_: середнє арифметичне
-    :param st_dev: середнє квадратичне відхилення
+    :param st_err_dev: середнє квадратичне відхилення чи міра коливання середньої частоти
     :param mtpl: 1, 2 або 3, залежно від потрібного коефіцієнта для середнього квадратичного відхилення
     :return: інтервал для смуги коливання
     """
-    start = statistical_round(mean_ - (mtpl * st_dev))
-    end = statistical_round(mean_ + (mtpl * st_dev))
+    start = statistical_round(mean_ - (mtpl * st_err_dev))
+    end = statistical_round(mean_ + (mtpl * st_err_dev))
     return start, end
 
 
-def visualise_freq_fluct(stripes_level: dict, all_nums: tuple, title: str, show: bool, path: str,
+def visualise_freq_fluct(stripes_level: dict, all_nums: tuple, title: str, show: bool, path: str, param_type: str,
                          order_of_sub: tuple = ("authors", "folklore"),
                          confidences_full: tuple = (68.3, 95.5, 99.7)) -> None:
     """
@@ -251,6 +254,7 @@ def visualise_freq_fluct(stripes_level: dict, all_nums: tuple, title: str, show:
     :param all_nums: всі межі інтервалів з обох вибірок (щоб підписати риски)
     :param show: якщо True, то графік з'явиться на екрані
     :param title: назва досліджуваної одиниці
+    :param param_type: st_err для міри коливання середньої частоти і st_dev для середнього квадратичного відхилення
     :param path: шлях до теки, куди потрібно зберегти графік; має завершуватися на \\;
                  якщо вказано "", то файл зберігатися не буде
     :param order_of_sub: порядок вказаних даних, назви вибірок
@@ -261,8 +265,12 @@ def visualise_freq_fluct(stripes_level: dict, all_nums: tuple, title: str, show:
     mult = 30
     levels_y = list(range(70, 105, 15))
     plt.ylim([60, 110])
-    plt.yticks(levels_y, [f"{conf}%,  {index}σ " for index, conf in enumerate(confidences_full, 1)],
-               fontdict={"size": 11.5})
+    if param_type == "st_dev":
+        plt.yticks(levels_y, [f"{conf}%,  {index}σ " for index, conf in enumerate(confidences_full, 1)],
+                   fontdict={"size": 11.5})
+    elif param_type == "st_err":
+        plt.yticks(levels_y, [f"{conf}%,  {index}σ_х̅ " for index, conf in enumerate(confidences_full, 1)],
+                   fontdict={"size": 11.5})
 
     plt.xlim([min(all_nums) * mult - 10, max(all_nums) * mult + 10])
     plt.xticks([x * mult for x in all_nums], all_nums, rotation=45, fontdict={"size": 8.3})
@@ -292,7 +300,11 @@ def visualise_freq_fluct(stripes_level: dict, all_nums: tuple, title: str, show:
 
     plt.legend(handles=[line_a, line_f])
     plt.xlabel('Смуги коливання', fontdict={"size": 15})
-    plt.title(f'Cмуги коливання частот для довірчих інтервалів {title}', fontdict={"size": 18})
+
+    if param_type == "st_dev":
+        plt.title(f'Cмуги коливання середньої частоти для {title} у вибірці', fontdict={"size": 18})
+    elif param_type == "st_err":
+        plt.title(f'Cмуги коливання середньої частоти для {title} у генеральній сукупності', fontdict={"size": 18})
 
     if path:
         plt.savefig(f'{path}{checked_title(title)}.png', dpi=100)
@@ -301,13 +313,18 @@ def visualise_freq_fluct(stripes_level: dict, all_nums: tuple, title: str, show:
         plt.show()
 
 
-def frequency_fluctuations(arithmetic_means: tuple, st_devs: tuple, visualise: bool, title: str = "",
-                           path: str = "freq_str_path\\", order_of_sub: tuple = ("authors", "folklore"),
+def frequency_fluctuations(arithmetic_means: tuple, st_errs_devs: tuple, param_type: str, visualise: bool,
+                           title: str = "", path: str = "freq_str_path\\", order_of_sub: tuple = ("authors", "folklore"),
                            confidences: tuple = (68.3, 95.5, 99.7), show: bool = False) -> dict:
     """
     Cмуги коливання частот для заданих довірчих інтервалів, візуалізації їх у графіку.
+    При обрахунку із *середнім квадратичним відхиленням* отримуємо коливання середньої частоти у вибірці.
+    При обрахунку із *мірою коливання середньої частоти* отримуємо прогноз коливання середньої частоти
+    в генеральній сукупності.
     :param arithmetic_means: значення арифметичних середніх для обох вибірок
-    :param st_devs: значення середнього квадратичного відхилення для обох вибірок
+    :param st_errs_devs: значення середнього квадратичного відхилення або міри коливання середньої частоти
+                         для обох вибірок
+    :param param_type: st_err для міри коливання середньої частоти і st_dev для середнього квадратичного відхилення
     :param order_of_sub: назви вибірок у порядку, в якому вказані середнє арифметичне та середнє квадратичне відхилення
     :param visualise: якщо True, то буде автоматично створено графік, який можна буде вивести на екран та/або зберегти
     :param path: шлях до теки, куди потрібно зберегти графік; має завершуватися на \\;
@@ -325,13 +342,14 @@ def frequency_fluctuations(arithmetic_means: tuple, st_devs: tuple, visualise: b
     for mtpl, confidence in enumerate(confidences_full, 1):
         for index_, mean_ in enumerate(arithmetic_means):
             if confidences[mtpl - 1] == float(confidence):
-                stripe = create_stripe(mean_, st_devs[index_], mtpl)
+                stripe = create_stripe(mean_, st_errs_devs[index_], mtpl)
                 stripes_type[order_of_sub[index_]][confidence] = stripe
                 stripes_level[confidence].append(stripe)
                 all_nums.extend(stripe)
 
     if visualise:
-        visualise_freq_fluct(stripes_level, tuple(all_nums), title, show, path, order_of_sub, confidences_full)
+        visualise_freq_fluct(stripes_level, tuple(all_nums), title, show, path, param_type, order_of_sub,
+                             confidences_full)
 
     return stripes_type
 
@@ -409,17 +427,12 @@ def check_uniformity(samples_subs_freqs: tuple) -> int:
     """
     abs_sample_freqs = [sum(sample) for sample in samples_subs_freqs]
     total_sum = sum(abs_sample_freqs)
-    abs_subsample_freqs = [0] * len(samples_subs_freqs[0])
-
-    for index_sample, sample in enumerate(samples_subs_freqs):
-        for index_sub, abs_freq in enumerate(sample[index_sample]):
-            abs_subsample_freqs[index_sub] += abs_freq
 
     fractions = []
-    for index_sample, sample in enumerate(samples_subs_freqs):
-        for index_sub, abs_freq in enumerate(sample[index_sample]):
+    for subsample in samples_subs_freqs:
+        for index_sub, abs_freq in enumerate(subsample):
             number_squared = abs_freq ** 2
-            fraction = number_squared / ((sum(sample)) * abs_subsample_freqs[index_sub])
+            fraction = number_squared / (sum(subsample) * sum([subs[index_sub] for subs in samples_subs_freqs]))
             fractions.append(fraction)
 
     x_2 = total_sum * (sum(fractions) - 1)
