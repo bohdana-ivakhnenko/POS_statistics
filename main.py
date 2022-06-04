@@ -122,11 +122,11 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
     Збірна функція для виконання всіх необхідних статистичних обрахунків.
     :param db: об'єкт бази даних
     :param table: назва таблиці
-    :param polygons: якщо True, то буде створено графіки полігонів частот (і гістаграм)
+    :param polygons: якщо True, то буде створено графіки полігонів частот (і гістограм)
     :param freq_str: якщо True, то буде створено графіки смуг коливання
     :param where: фільтр пошуку - додається до запиту напряму, без перетворень!
     :param results_path: шлях до теки з результатами обрахунків
-    :param freq_hist_path: шлях до теки, де будуть файли з інтервальними полігоном частот та гістаграмою
+    :param freq_hist_path: шлях до теки, де будуть файли з інтервальними полігоном частот та гістограмою
     :param freq_pol_path: шлях до теки, де будуть файли із графіками звичайного полігону частот
     :param freq_str_path: шлях до теки, де будуть файли із графіками смуг коливання
     :param show: якщо True, то буде виведено на екран всі створені графіки
@@ -142,8 +142,8 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
     elif table.startswith("pos"):
         index = 3
 
-    authors_ = db.read_from_table(f"{table}_authors", where=where)
-    folk_ = db.read_from_table(f"{table}_folk", where=where)
+    authors_ = db.read_from_table(f"{table}_authors", where=where, order_by="pos")
+    folk_ = db.read_from_table(f"{table}_folk", where=where, order_by="pos")
 
     for data_a, data_f in zip(authors_, folk_):
         subs_a = data_a[index:]
@@ -185,10 +185,6 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
         with open(f"{results_path}{data_a[1]}.txt", "w", encoding="utf-8") as file:
             print(f"Абсолютна частота автори:\t", data_a[index-1], file=file, end='\n\n')
             print(f"Абсолютна частота фольк:\t", data_f[index-1], file=file, end='\n\n')
-
-            # це і сума по абсолютних частотах - для опису таблиць, а не одиниць в них
-            # print(f"Унікальних одиниць автори:\t", len(data_a), file=file, end='\n\n')
-            # print(f"Унікальних одиниць фольк:\t", len(data_f), file=file, end='\n\n')
 
             print(f"Варіаційний ряд автори:", file=file)
             print(grouped_a, file=file, end='\n\n')
@@ -239,9 +235,9 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
             if data_a in ["ADJ", "ADV", "PREP"]:
                 st_a = st.standard_error(st_dev_a, len(subs_a), s=True)
                 st_f = st.standard_error(st_dev_f, len(subs_f), s=True)
-                st_cr = st.students_criterion((mean_a, mean_f), (st_a, st_f))
+                st_t_test = st.students_t_test((mean_a, mean_f), (st_a, st_f))
                 fr_gr_stud = st.freedom_greade((sum(subs_a), sum(subs_f)), len(samples), students_criterion_=True)
-                print(f"Критерій Стьюдента:\t", st_cr, file=file)
+                print(f"Критерій Стьюдента:\t", st_t_test, file=file)
                 print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
 
         if polygons:

@@ -74,7 +74,7 @@ def group_by_intervals(frequencies: tuple) -> dict:
 def frequency_polygon_by_intervals(frequencies: tuple, xlabel: str, x_max: int = 400, y_max: int = 70,
                                    x_ticks_freq: int = 20, show: bool = True, path="results\\pos\\freq_his\\") -> None:
     """
-    Графік інтервального полігону частот та гістаграми.
+    Графік інтервального полігону частот та гістограми.
     :param frequencies: частоти досліджуваної одиниці у підвибірках
     :param xlabel: назва досліджуваної одиниці
     :param x_max: ширина графіка
@@ -439,7 +439,7 @@ def freedom_greade(num_of_subsamples: tuple, num_of_samples: int, students_crite
     return (num_of_subsamples[0] - 1) * (num_of_samples - 1)
 
 
-def students_criterion(samples_mean_freq: tuple, s_: tuple) -> float:
+def students_t_test(samples_mean_freq: tuple, s_: tuple) -> float:
     """
     Критерій Стьюдента.
     :param samples_mean_freq:
