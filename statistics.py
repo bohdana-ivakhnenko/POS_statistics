@@ -419,7 +419,7 @@ def relative_subtraction(num1, num2) -> float:
     return statistical_round(abs(num1 - num2) / num1)
 
 
-def check_uniformity(samples_subs_freqs: tuple) -> int:
+def check_uniformity(samples_subs_freqs: tuple) -> float:
     """
     Перевірка на статистичну однорідність, критерій однорідности хі-2
     :param samples_subs_freqs: кортеж кортежів підвибірок вирірок, які потрібно порівняти
@@ -436,7 +436,7 @@ def check_uniformity(samples_subs_freqs: tuple) -> int:
             fractions.append(fraction)
 
     x_2 = total_sum * (sum(fractions) - 1)
-    return x_2
+    return statistical_round(x_2)
 
 
 def freedom_greade(num_of_subsamples: tuple, num_of_samples: int, students_criterion_=False) -> int:
