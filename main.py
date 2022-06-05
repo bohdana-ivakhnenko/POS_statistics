@@ -116,7 +116,7 @@ def do_reading(sample_name: str, db, num_of_rows: int = -1,
 
 def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, where="",
                     results_path="results\\pos\\", freq_hist_path="freq_hist\\", freq_pol_path="freq_pol\\",
-                    freq_str_dev_path="freq_str_samp\\", freq_str_err_path="freq_str_pop\\",
+                    freq_str_dev_path="freq_str_samp\\", freq_str_err_path="freq_str\\",
                     show=False, x_max=400, x_ticks_freq=20) -> None:
     """
     Збірна функція для виконання всіх необхідних статистичних обрахунків.
