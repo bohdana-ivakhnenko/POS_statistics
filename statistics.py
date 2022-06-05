@@ -296,7 +296,7 @@ def visualise_freq_fluct(stripes_level: dict, all_nums: tuple, title: str, show:
             [plt.vlines(x=d * mult, ymin=0, ymax=level, colors='forestgreen', linestyles=':', linewidth=1.3, alpha=0.7)
              for d in stripes[0]]
 
-    plt.vlines(x=0, ymin=0, ymax=110, colors="black", linestyles='-', linewidth=1, alpha=0.6)
+    # plt.vlines(x=0, ymin=0, ymax=110, colors="black", linestyles='-', linewidth=1, alpha=0.6)
 
     plt.legend(handles=[line_a, line_f])
     plt.xlabel('Смуги коливання', fontdict={"size": 15})
@@ -337,7 +337,7 @@ def frequency_fluctuations(arithmetic_means: tuple, st_errs_devs: tuple, param_t
     confidences_full = (68.3, 95.5, 99.7)
     stripes_type = collections.defaultdict(dict)
     stripes_level = collections.defaultdict(list)
-    all_nums = [0]
+    all_nums = []
 
     for mtpl, confidence in enumerate(confidences_full, 1):
         for index_, mean_ in enumerate(arithmetic_means):
@@ -364,6 +364,10 @@ def coefficient_of_variation(st_dev: float, arithmetic_mean_: float) -> float:
     return statistical_round(st_dev / arithmetic_mean_)
 
 
+def v_max(num_of_subs) -> float:
+    return sqrt(num_of_subs - 1)
+
+
 def relative_coefficient_of_variation(st_dev: float, arithmetic_mean_: float, num_of_subs: int,
                                       absolute_freq: bool) -> float:
     """
@@ -378,8 +382,7 @@ def relative_coefficient_of_variation(st_dev: float, arithmetic_mean_: float, nu
         d = 1 - (st_dev / (arithmetic_mean_ * sqrt(num_of_subs - 1)))
     else:
         v = st_dev / arithmetic_mean_
-        v_max = sqrt(num_of_subs - 1)
-        d = 1 - (v / v_max)
+        d = 1 - (v / v_max(num_of_subs))
     return statistical_round(d)
 
 
@@ -439,17 +442,17 @@ def check_uniformity(samples_subs_freqs: tuple) -> float:
     return statistical_round(x_2)
 
 
-def freedom_greade(num_of_subsamples: tuple, num_of_samples: int, students_t_test_=False) -> int:
+def freedom_greade(subsamples: tuple, num_of_samples: int = 0, students_t_test_=False) -> int:
     """
     Підрахунок кількости ступенів свободи.
-    :param num_of_subsamples: кількість підвибірок
+    :param subsamples: кількість підвибірок
     :param num_of_samples: кількість вибірок
     :param students_t_test_: значення критерію Стьюдента
     :return: кількість ступенів свободи
     """
     if students_t_test_:
-        return sum(num_of_subsamples) - len(num_of_subsamples)
-    return (num_of_subsamples[0] - 1) * (num_of_samples - 1)
+        return len(subsamples[0]) + len(subsamples[1]) - 2
+    return (len(subsamples[0]) - 1) * (num_of_samples - 1)
 
 
 def students_t_test(samples_mean_freq: tuple, s_: tuple) -> float:
@@ -477,8 +480,9 @@ def get_sample_size(coef_of_var: float, rel_err: float = 0.045) -> int:
     return int(statistical_round(numerator / denominator, 0))
 
 
-# x = (78, 72, 69, 81, 63, 67, 65, 75, 9, 100, 100, 400, 400, 350, 350, 400, 74, 1, 83, 71, 79, 80, 69)
-# frequency_polygon_by_intervals(x, 'NOUN_frequency', path="")
-# frequency_polygon(x, 'NOUN_frequency_polygon', path="")
-# print(frequency_fluctuations((1.89,), (1.25,), visualise=True, show=True, title="random", path=""))
-# print(frequency_fluctuations((1.89, 2.55), (1.25, 1.0), visualise=True, path="", show=True, title="random"))
+def analise_grouped_data(data, whole):
+    print("num of freq\t", sum(data.values()))
+
+    number = sum([key * value for key, value in data.items()])
+    print("percent of whole", (number / whole) * 100)
+    print("out of 100\t", 100 - ((number / whole) * 100))

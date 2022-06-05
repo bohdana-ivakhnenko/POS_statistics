@@ -166,17 +166,14 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
         st_err_f = st.standard_error(st_dev_f, len(subs_f), s=False)
 
         if freq_str:
-            stripes_dev = st.frequency_fluctuations((mean_a, mean_f), (st_dev_a, st_dev_f), param_type="st_dev",
-                                                    visualise=True, show=show, path=results_path+freq_str_dev_path,
-                                                    title=data_a[1])
             stripes_err = st.frequency_fluctuations((mean_a, mean_f), (st_err_a, st_err_f), param_type="st_err",
                                                     visualise=True, show=show, path=results_path + freq_str_err_path,
                                                     title=data_a[1])
         else:
-            stripes_dev = st.frequency_fluctuations((mean_a, mean_f), (st_dev_a, st_dev_f), param_type="st_dev",
-                                                    visualise=False)
             stripes_err = st.frequency_fluctuations((mean_a, mean_f), (st_err_a, st_err_f), param_type="st_err",
                                                     visualise=False)
+        stripes_dev = st.frequency_fluctuations((mean_a, mean_f), (st_dev_a, st_dev_f), param_type="st_dev",
+                                                visualise=False)
 
         coef_var_a = st.coefficient_of_variation(st_dev_a, mean_a)
         coef_var_f = st.coefficient_of_variation(st_dev_f, mean_f)
@@ -241,7 +238,7 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
             if data_a[idx] in ["NOUN", "VERB", "CONJ"]:
                 samples = (subs_a, subs_f)
                 unif = st.check_uniformity(samples)
-                fr_gr = st.freedom_greade((len(subs_a),), len(samples))
+                fr_gr = st.freedom_greade((subs_a,), len(samples))
                 print(f"\n\nПеревірка на статистичну однорідність - х^2:\t", unif, file=file)
                 print(f"Кількість ступенів свободи:\t", fr_gr, file=file, end='')
 
@@ -249,7 +246,7 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
                 st_a = st.standard_error(st_dev_a, len(subs_a), s=True)
                 st_f = st.standard_error(st_dev_f, len(subs_f), s=True)
                 st_t_test = st.students_t_test((mean_a, mean_f), (st_a, st_f))
-                fr_gr_stud = st.freedom_greade((sum(subs_a), sum(subs_f)), len(samples), students_t_test_=True)
+                fr_gr_stud = st.freedom_greade((subs_a, subs_f), students_t_test_=True)
                 print(f"\n\nКритерій Стьюдента:\t", st_t_test, file=file)
                 print(f"Кількість ступенів свободи:\t", fr_gr_stud, file=file, end='')
 
@@ -278,27 +275,27 @@ if __name__ == '__main__':
 
     # ЧИТАННЯ СПЕЦІАЛЬНЕ
     # print(authors_tales)
-    # authors = db.read_from_table(f"lemmas_authors", where="lemma in ('бути', 'ти', 'дрібний', 'великий')",
+    # authors = db.read_from_table(f"lemmas_authors", where="pos = 'X'",
     #                              order_by="abs_freq", num=30, desc=False)
     # print(authors)
     # print("len(authors)", len(authors))
     #
-    # print(sum([word[3] for word in authors]))
+    # print(*[word[3] for word in authors])
     # print()
     # print(folk_tales)
-    # folk = db.read_from_table(f"lemmas_folk", where="lemma in ('бути', 'ти', 'дрібний', 'великий')",
+    # folk = db.read_from_table(f"lemmas_folk", where="pos = 'X'",
     #                           order_by="abs_freq", num=30, desc=False)
     # print(folk)
     # print("len(folk)", len(folk))
-    # print(sum([word[3] for word in folk]))
+    # print(*[word[3] for word in folk])
 
     # ЧИТАННЯ ЗАГАЛЬНЕ
-    # do_reading(authors_tales, db, pos_filter=True)
-    # print()
-    # do_reading(folk_tales, db, pos_filter=True)
+    do_reading(authors_tales, db, pos_filter=True)
+    print()
+    do_reading(folk_tales, db, pos_filter=True)
 
     # ОБРАХУНКИ
-    do_calculations(db, polygons=True, freq_str=True)
+    # do_calculations(db, polygons=True, freq_str=True)
     # do_calculations(db, table="lemmas", where="lemma = 'бути' AND pos in ('VERB', 'AUX')",
     #                 polygons=True, freq_str=True, results_path="results\\high_freq\\", x_max=50, x_ticks_freq=5)
     #
