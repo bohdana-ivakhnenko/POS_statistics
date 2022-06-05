@@ -4,11 +4,23 @@ import re
 
 
 def get_a_tree(link):
+    """
+    Виймає html-дерево веб-сторінки за посиланням.
+    :param link: посилання
+    :return: дерево веб-сторінки
+    """
     web_page = requests.get(link)
     return html.fromstring(web_page.content)
 
 
-def get_tales(link: str, type: str):
+def get_tales(link: str, type_: str) -> True:
+    """
+    Автоматично вивантажує усі казки за посиланням (від першої до останньої сторінки), а тоді складає
+    їх в окремі файли, а також усі разом в один великий файл.
+    :param link: посилання на початкову сторінку казок
+    :param type_: тип казок: (authors, folk)
+    :return: True
+    """
     all_titles = []
     all_links = []
 
@@ -40,12 +52,12 @@ def get_tales(link: str, type: str):
         all_texts += " " + tale
 
         title_ = re.sub(r"[\[\]\\/|:*?\"<>]", "", title).replace(" ", "_")+".txt"
-        with open(f"sources\\tales_{type}\\{title_}", "w", encoding="utf-8") as file1, \
-                open(f"sources\\tales_{type}.txt", "a", encoding="utf-8") as file2:
+        with open(f"sources\\tales_{type_}\\{title_}", "w", encoding="utf-8") as file1, \
+                open(f"sources\\tales_{type_}.txt", "a", encoding="utf-8") as file2:
             print(tale, end="", file=file1)
             print(tale, end="\n\n", file=file2)
 
-    print(f"Finished on {type} tales!", end="\n\n")
+    print(f"Finished on {type_} tales!", end="\n\n")
     return True
 
 

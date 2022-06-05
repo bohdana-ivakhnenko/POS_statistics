@@ -262,7 +262,7 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
 
 
 def calculate_tables(db, tables: tuple = ("word_forms", "lemmas", "pos_filtered"), where="",
-                     order_by="", results_path="results\\tables\\") -> None:
+                     order_by="abs_freq", results_path="results\\tables\\") -> None:
 
     for table in tables:
         authors_ = db.read_from_table(f"{table}_authors", where=where, order_by=order_by)
@@ -344,9 +344,9 @@ if __name__ == '__main__':
     #
     # print()
     # print(folk_tales)
-    # folk = db.read_from_table(f"lemmas_folk", where="pos = 'X'",
-    #                           order_by="abs_freq", num=30, desc=False)
-    # print(folk)
+    # folk = db.read_from_table(f"lemmas_folk", where="",
+    #                           order_by="abs_freq", num=30, desc=True)
+    # print(*folk, sep="\n")
     # print("len(folk)", len(folk))
     # abs_freq_f = [word[4] for word in authors]
 
@@ -356,7 +356,7 @@ if __name__ == '__main__':
     # do_reading(folk_tales, db, pos_filter=False, word_forms=True, num_of_rows=50, order_by="abs_freq")
 
     # ОБРАХУНКИ ТАБЛИЦЬ
-    # calculate_tables(db)
+    calculate_tables(db)
 
     # ОБРАХУНКИ ОДИНИЦЬ
     # do_calculations(db, polygons=True, freq_str=True)
