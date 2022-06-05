@@ -72,7 +72,8 @@ def group_by_intervals(frequencies: tuple) -> dict:
 
 
 def frequency_polygon_by_intervals(frequencies: tuple, xlabel: str, x_max: int = 400, y_max: int = 70,
-                                   x_ticks_freq: int = 20, show: bool = True, path="results\\pos\\freq_his\\") -> None:
+                                   x_ticks_freq: int = 20, y_ticks_freq: int = 5,
+                                   show: bool = True, path="results\\pos\\freq_his\\") -> None:
     """
     Графік інтервального полігону частот та гістограми.
     :param frequencies: частоти досліджуваної одиниці у підвибірках
@@ -81,6 +82,7 @@ def frequency_polygon_by_intervals(frequencies: tuple, xlabel: str, x_max: int =
     :param y_max: висота графіка
     :param show: якщо True, то графік з'явиться на екрані
     :param x_ticks_freq: інтервал рисок на вісі Ох
+    :param y_ticks_freq: інтервал рисок на вісі Оy
     :param path: шлях до теки, куди потрібно зберегти графік; якщо вказано "", то файл зберігатися не буде
     :return: None
     """
@@ -112,8 +114,8 @@ def frequency_polygon_by_intervals(frequencies: tuple, xlabel: str, x_max: int =
     plt.ylim([0, y_max + indent_upper])
     plt.plot(mid, x, 'royalblue', linewidth=2.0)
 
-    y_labels = [num for num in range(0, y_max + 1, 5)]
-    plt.yticks(range(0, y_max + 1, 5), y_labels, fontdict={"size": 11})
+    y_labels = [num for num in range(0, y_max + 1, y_ticks_freq)]
+    plt.yticks(range(0, y_max + 1, y_ticks_freq), y_labels, fontdict={"size": 11})
     x_labels = [num for num in range(0, x_max + 1, x_ticks_freq)]
     plt.xticks(range(0, x_max + 1, x_ticks_freq), x_labels, rotation=45, fontdict={"size": 11})
 
@@ -130,7 +132,7 @@ def frequency_polygon_by_intervals(frequencies: tuple, xlabel: str, x_max: int =
 
 
 def frequency_polygon(frequencies: tuple, xlabel: str, x_max=400, y_max=70, show=True, x_ticks_freq=20,
-                      path="results\\pos\\freq_pol\\"):
+                      y_ticks_freq=5, path="results\\pos\\freq_pol\\"):
     """
     Графік полігону частот.
     :param frequencies: частоти досліджуваної одиниці у підвибірках
@@ -139,6 +141,7 @@ def frequency_polygon(frequencies: tuple, xlabel: str, x_max=400, y_max=70, show
     :param y_max: висота графіка
     :param show: якщо True, то графік з'явиться на екрані
     :param x_ticks_freq: інтервал рисок на вісі Ох
+    :param y_ticks_freq: інтервал рисок на вісі Оy
     :param path: шлях до теки, куди потрібно зберегти графік; має завершуватися на \\;
                  якщо вказано "", то файл зберігатися не буде
     :return: None
@@ -157,8 +160,8 @@ def frequency_polygon(frequencies: tuple, xlabel: str, x_max=400, y_max=70, show
     plt.xlim([0 - indent_left, x_max + indent_right])
     plt.ylim([0, y_max + indent_upper])
 
-    y_labels = [num for num in range(0, y_max + 1, 5)]
-    plt.yticks(range(0, y_max + 1, 5), y_labels, fontdict={"size": 11})
+    y_labels = [num for num in range(0, y_max + 1, y_ticks_freq)]
+    plt.yticks(range(0, y_max + 1, y_ticks_freq), y_labels, fontdict={"size": 11})
     x_labels = [num for num in range(0, x_max + 1, x_ticks_freq)]
     plt.xticks(range(0, x_max + 1, x_ticks_freq), x_labels, rotation=45, fontdict={"size": 11})
 

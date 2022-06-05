@@ -80,7 +80,7 @@ def create_tables(sample_name: str, db, num_of_sub=0,
     print("Finished on POS")
 
 
-def do_reading(sample_name: str, db, num_of_rows: int = -1,
+def do_reading(sample_name: str, db, num_of_rows: int = -1, order_by="abs_freq",
                word_forms=False, lemmas=False, pos=False, pos_filter=False) -> None:
     """
     Збірна функція для зчитування даних із багатьох таблиць.
@@ -99,24 +99,24 @@ def do_reading(sample_name: str, db, num_of_rows: int = -1,
         [print(line) for line in data[:num_of_rows]]
 
     if lemmas:
-        data = db.read_from_table(f"lemmas_{sample_name}", order_by="abs_freq")
+        data = db.read_from_table(f"lemmas_{sample_name}", order_by=order_by, desc=True)
         print("num of lemmas: ", len(data))
         [print(line) for line in data[:num_of_rows]]
 
     if pos:
-        data = db.read_from_table(f"pos_{sample_name}", order_by="abs_freq")
+        data = db.read_from_table(f"pos_{sample_name}", order_by=order_by, desc=True)
         print("num of pos: ", len(data))
         [print(line) for line in data[:num_of_rows]]
 
     if pos_filter:
-        data = db.read_from_table(f"pos_filtered_{sample_name}", order_by="abs_freq")
+        data = db.read_from_table(f"pos_filtered_{sample_name}", order_by=order_by, desc=True)
         print("num of pos filtered: ", len(data))
         [print(line) for line in data[:num_of_rows]]
 
 
 def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, where="",
                     results_path="results\\pos\\", freq_hist_path="freq_hist\\", freq_pol_path="freq_pol\\",
-                    freq_str_dev_path="freq_str_samp\\", freq_str_err_path="freq_str\\",
+                    freq_str_path="freq_str\\",
                     show=False, x_max=400, x_ticks_freq=20) -> None:
     """
     Збірна функція для виконання всіх необхідних статистичних обрахунків.
@@ -128,8 +128,7 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
     :param results_path: шлях до теки з результатами обрахунків
     :param freq_hist_path: шлях до теки, де будуть файли з інтервальними полігоном частот та гістограмою
     :param freq_pol_path: шлях до теки, де будуть файли із графіками звичайного полігону частот
-    :param freq_str_dev_path: шлях до теки, де будуть файли із графіками смуг коливання у вибірці
-    :param freq_str_err_path: шлях до теки, де будуть файли із графіками смуг коливання у генеральній сукупності
+    :param freq_str_path: шлях до теки, де будуть файли із графіками смуг коливання у генеральній сукупності
     :param show: якщо True, то буде виведено на екран всі створені графіки
     :param x_max: ширина осі Х (до якого числа)
     :param x_ticks_freq: частота малювання рисок на осі Х
@@ -167,7 +166,7 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
 
         if freq_str:
             stripes_err = st.frequency_fluctuations((mean_a, mean_f), (st_err_a, st_err_f), param_type="st_err",
-                                                    visualise=True, show=show, path=results_path + freq_str_err_path,
+                                                    visualise=True, show=show, path=results_path + freq_str_path,
                                                     title=data_a[1])
         else:
             stripes_err = st.frequency_fluctuations((mean_a, mean_f), (st_err_a, st_err_f), param_type="st_err",
@@ -262,6 +261,68 @@ def do_calculations(db, table="pos_filtered", polygons=True, freq_str=True, wher
                                               x_ticks_freq=x_ticks_freq, path=results_path+freq_hist_path)
 
 
+def calculate_tables(db, tables: tuple = ("word_forms", "lemmas", "pos_filtered"), where="",
+                     order_by="", results_path="results\\tables\\") -> None:
+
+    for table in tables:
+        authors_ = db.read_from_table(f"{table}_authors", where=where, order_by=order_by)
+        folk_ = db.read_from_table(f"{table}_folk", where=where, order_by=order_by)
+
+        index = 1
+        if table.startswith("pos"):
+            index = 2
+        elif table == "lemmas":
+            index = 3
+        elif table == "word_forms":
+            index = 4
+
+        num_of_rows_a = len(authors_)
+        num_of_rows_f = len(folk_)
+
+        abs_freqs_a = tuple([word[index] for word in authors_])
+        abs_freqs_f = tuple([word[index] for word in folk_])
+
+        relative_freq_a = st.statistical_round(num_of_rows_a / sum(abs_freqs_a))
+        relative_freq_f = st.statistical_round(num_of_rows_f / sum(abs_freqs_f))
+
+        freqs_grouped_a = st.group(abs_freqs_a)
+        freqs_grouped_f = st.group(abs_freqs_f)
+
+        freqs_grouped_int_a = st.group_by_intervals(abs_freqs_a)
+        freqs_grouped_int_f = st.group_by_intervals(abs_freqs_f)
+
+        mean_a = st.arithmetic_mean(freqs_grouped_a)
+        mean_f = st.arithmetic_mean(freqs_grouped_f)
+
+        with open(f"{results_path}{table}.txt", "w", encoding="utf-8") as file:
+            print(f"Кількість одиниць автори:\t", num_of_rows_a, file=file)
+            print(f"Кількість одиниць фольк:\t", num_of_rows_f, file=file, end='\n\n')
+
+            print(f"Абсолютна частота автори:\t", sum(abs_freqs_a), file=file)
+            print(f"Абсолютна частота фольк:\t", sum(abs_freqs_f), file=file, end='\n\n')
+
+            print(f"Відносна частота автори:\t", relative_freq_a, file=file)
+            print(f"Відносна частота фольк:\t", relative_freq_f, file=file, end='\n\n')
+
+            print(f"Середня частота автори:\t", mean_a, file=file)
+            print(f"Середня частота фольк:\t", mean_f, file=file, end='\n\n')
+
+            print(f"Варіаційний ряд автори:", file=file)
+            print(freqs_grouped_a, file=file, end='\n\n')
+            print(f"Варіаційний ряд фольк:", file=file)
+            print(freqs_grouped_f, file=file, end='\n\n')
+
+            print(f"Інтервальний ряд автори:", file=file)
+            print(freqs_grouped_int_a, file=file, end='\n\n')
+            print(f"Інтервальний ряд фольк:", file=file)
+            print(freqs_grouped_int_f, file=file, end='\n\n')
+
+            print(f"Приклад рядка автори:", file=file)
+            print(authors_[3], file=file, end='\n\n')
+            print(f"Приклад рядка фольк:", file=file)
+            print(folk_[3], file=file, end='')
+
+
 if __name__ == '__main__':
     db = database.Database("tales.db")
 
@@ -275,26 +336,29 @@ if __name__ == '__main__':
 
     # ЧИТАННЯ СПЕЦІАЛЬНЕ
     # print(authors_tales)
-    # authors = db.read_from_table(f"lemmas_authors", where="pos = 'X'",
+    # authors = db.read_from_table(f"word_forms_authors", where="pos = 'X'",
     #                              order_by="abs_freq", num=30, desc=False)
     # print(authors)
     # print("len(authors)", len(authors))
+    # abs_freq_a = [word[4] for word in authors]
     #
-    # print(*[word[3] for word in authors])
     # print()
     # print(folk_tales)
     # folk = db.read_from_table(f"lemmas_folk", where="pos = 'X'",
     #                           order_by="abs_freq", num=30, desc=False)
     # print(folk)
     # print("len(folk)", len(folk))
-    # print(*[word[3] for word in folk])
+    # abs_freq_f = [word[4] for word in authors]
 
     # ЧИТАННЯ ЗАГАЛЬНЕ
-    do_reading(authors_tales, db, pos_filter=True)
-    print()
-    do_reading(folk_tales, db, pos_filter=True)
+    # do_reading(authors_tales, db, pos_filter=False, word_forms=True, num_of_rows=50, order_by="abs_freq")
+    # print()
+    # do_reading(folk_tales, db, pos_filter=False, word_forms=True, num_of_rows=50, order_by="abs_freq")
 
-    # ОБРАХУНКИ
+    # ОБРАХУНКИ ТАБЛИЦЬ
+    # calculate_tables(db)
+
+    # ОБРАХУНКИ ОДИНИЦЬ
     # do_calculations(db, polygons=True, freq_str=True)
     # do_calculations(db, table="lemmas", where="lemma = 'бути' AND pos in ('VERB', 'AUX')",
     #                 polygons=True, freq_str=True, results_path="results\\high_freq\\", x_max=50, x_ticks_freq=5)
